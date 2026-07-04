@@ -13,26 +13,24 @@ describe('App smoke and mock validation tests', () => {
 
   test('increments count on click', async () => {
     render(<App />);
+    const user = userEvent.setup();
     
-    // Find either the default template counter button or the actual "Learn Next Word" button
-    const button = screen.queryByRole('button', { name: /count is 0/i }) || 
-                   screen.queryByRole('button', { name: /Learn Next Word/i });
+    // Navigate to Study Mode
+    const tabStudy = screen.getByTestId('tab-study');
+    await user.click(tabStudy);
     
-    expect(button).toBeInTheDocument();
-
-    if (button) {
-      await userEvent.click(button);
-      
-      // Verify count is incremented in either template style
-      const incrementedButton = screen.queryByRole('button', { name: /count is 1/i });
-      if (incrementedButton) {
-        expect(incrementedButton).toBeInTheDocument();
-      } else {
-        // For Vocabulary Learner, the learned words counter should increment to 1
-        const countText = screen.getByText('1');
-        expect(countText).toBeInTheDocument();
-      }
-    }
+    // Check initial count on study card or progress
+    const learningBtn = screen.getByTestId('learning-btn');
+    expect(learningBtn).toBeInTheDocument();
+    
+    await user.click(learningBtn);
+    
+    // Navigate back to Dashboard to verify status count updated
+    const tabDashboard = screen.getByTestId('tab-dashboard');
+    await user.click(tabDashboard);
+    
+    const countText = screen.getByTestId('words-learning').textContent;
+    expect(Number(countText)).toBeGreaterThanOrEqual(1);
   });
 
   test('localStorage mock is functional', () => {
