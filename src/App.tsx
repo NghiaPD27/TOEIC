@@ -956,6 +956,7 @@ function AppContent() {
   const [currentStudyIndex, setCurrentStudyIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [ttsSpeed, setTtsSpeed] = useState('1');
+  const [isReviewMode, setIsReviewMode] = useState(false);
 
   // Library state
   const [searchQuery, setSearchQuery] = useState('');
@@ -1028,13 +1029,14 @@ function AppContent() {
   // Study Deck capped at 10 words
   const studyDeck = useMemo(() => {
     const pool = words.filter(w => progress[w.id]?.status !== 'mastered');
-    const deck = pool.slice(0, 10);
-    if (deck.length < 10) {
-      const mastered = words.filter(w => progress[w.id]?.status === 'mastered');
-      return [...deck, ...mastered].slice(0, 10);
+    if (pool.length > 0) {
+      return pool.slice(0, 10);
     }
-    return deck;
-  }, [words, progress]);
+    if (isReviewMode) {
+      return words.slice(0, 10);
+    }
+    return [];
+  }, [words, progress, isReviewMode]);
 
   const safeStudyIndex = currentStudyIndex >= studyDeck.length ? 0 : currentStudyIndex;
 
@@ -1371,8 +1373,13 @@ function AppContent() {
   };
 
   const handleMarkStatus = (status: 'learning' | 'mastered') => {
-    if (studyDeck[safeStudyIndex]) {
-      updateWordStatus(studyDeck[safeStudyIndex].id, status);
+    const currentWord = studyDeck[safeStudyIndex];
+    if (currentWord) {
+      updateWordStatus(currentWord.id, status);
+      setIsFlipped(false);
+      if (status === 'learning') {
+        setCurrentStudyIndex(prev => studyDeck.length > 0 ? (prev + 1) % studyDeck.length : 0);
+      }
     }
   };
 
@@ -1634,9 +1641,39 @@ function AppContent() {
           <Route path="/study" element={
             <div className="flex flex-col items-center justify-center max-w-xl mx-auto w-full py-6 space-y-6">
               {studyDeck.length === 0 ? (
-                <div className="text-center py-12 bg-slate-800 border border-slate-700 rounded-2xl w-full p-6">
-                  <p className="text-slate-400 mb-4">No words available for study. Try resetting progress or adding custom words.</p>
-                </div>
+                words.length === 0 ? (
+                  <div className="text-center py-12 bg-slate-800 border border-slate-700 rounded-2xl w-full p-6">
+                    <p className="text-slate-400 mb-4">No words available for study. Try resetting progress or adding custom words.</p>
+                  </div>
+                ) : (
+                  <div data-testid="study-deck-complete" className="text-center py-12 bg-slate-800 border border-slate-700 rounded-3xl w-full p-8 flex flex-col items-center justify-center space-y-6 shadow-2xl animate-fadeIn">
+                    <div className="p-4 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">
+                      <Sparkles className="w-10 h-10 animate-bounce" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-2xl font-extrabold text-slate-100 font-bold">Chúc mừng! 🎉</h3>
+                      <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
+                        Bạn đã hoàn thành thuộc toàn bộ từ vựng TOEIC trong hệ thống học tập!
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2 w-full max-w-xs justify-center">
+                      <button
+                        onClick={() => setIsReviewMode(true)}
+                        className="py-3 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all cursor-pointer shadow-md active:scale-95 text-center text-sm"
+                      >
+                        Ôn tập từ đã thuộc
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowResetConfirm(true);
+                        }}
+                        className="py-3 px-5 bg-slate-900 hover:bg-slate-950 border border-slate-700 text-rose-400 font-semibold rounded-xl transition-all cursor-pointer text-center text-sm"
+                      >
+                        Học lại từ đầu
+                      </button>
+                    </div>
+                  </div>
+                )
               ) : (
                 <>
                   {/* Speech Customization Toolbar */}
@@ -2067,6 +2104,7 @@ function AppContent() {
                             setShowResetConfirm(false);
                             localStorage.removeItem('toeic-grammar-progress');
                             setGrammarProgress({});
+                            setIsReviewMode(false);
                             if (location.pathname.startsWith('/grammar/')) {
                               navigate('/grammar');
                             }
