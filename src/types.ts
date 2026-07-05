@@ -31,3 +31,26 @@ export interface StreakState {
   count: number;
   lastStudyDate: string; // toDateString() format
 }
+
+export interface GrammarQuestion {
+  id: string;
+  questionText: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+}
+
+export interface GrammarTopic {
+  id: string;
+  title: string;
+  description: string;
+  theory: string;
+  toeicTips: string;
+  questions: GrammarQuestion[];
+}
+
+export interface GrammarProgress {
+  theoryCompleted: boolean;
+  maxQuizScore: number | null;
+}
+

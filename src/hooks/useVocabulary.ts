@@ -98,14 +98,8 @@ export const useVocabulary = () => {
     try {
       localStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
-      if (error instanceof DOMException &&
-          (error.name === 'QuotaExceededError' ||
-           error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
-        console.warn('Storage quota exceeded during initialization!');
-        initialStorageError = true;
-      } else {
-        console.error('Unknown storage error during initialization:', error);
-      }
+      console.warn('Storage error during initialization:', error);
+      initialStorageError = true;
     }
   };
 
@@ -116,14 +110,8 @@ export const useVocabulary = () => {
       setStorageError(false);
       return true;
     } catch (error) {
-      if (error instanceof DOMException &&
-          (error.name === 'QuotaExceededError' ||
-           error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
-        console.warn('Storage quota exceeded!');
-        setStorageError(true);
-      } else {
-        console.error('Unknown storage error:', error);
-      }
+      console.warn('Storage error during save:', error);
+      setStorageError(true);
       return false;
     }
   };
@@ -555,6 +543,7 @@ export const useVocabulary = () => {
     progress: progressState,
     streak: streakState,
     storageError,
+    setStorageError,
     addCustomWord,
     updateWordStatus,
     incrementWordStats,
