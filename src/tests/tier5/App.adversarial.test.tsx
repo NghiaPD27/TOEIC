@@ -14,6 +14,7 @@ const mockAddCustomWord = vi.fn();
 const mockUpdateWordStatus = vi.fn();
 const mockIncrementWordStats = vi.fn();
 const mockResetProgress = vi.fn();
+const mockToggleWordStarred = vi.fn();
 
 vi.mock('../../hooks/useVocabulary', () => {
   const mockHook = () => ({
@@ -25,6 +26,7 @@ vi.mock('../../hooks/useVocabulary', () => {
     updateWordStatus: mockUpdateWordStatus,
     incrementWordStats: mockIncrementWordStats,
     resetProgress: mockResetProgress,
+    toggleWordStarred: mockToggleWordStarred,
   });
   return {
     default: mockHook,

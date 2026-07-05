@@ -1,10 +1,14 @@
 import { useState, useRef } from 'react';
 import type { VocabularyWord, UserWordProgress, StreakState, LearningStatus } from '../types';
 import { defaultVocabulary } from '../data/vocabulary';
+import { builtinSynonyms } from '../data/synonyms';
 
 // Helper to merge defaultVocabulary and custom words cleanly
 const mergeWords = (defaultWords: VocabularyWord[], customWords: VocabularyWord[]): VocabularyWord[] => {
-  const defaultCopy = [...defaultWords];
+  const defaultCopy = defaultWords.map(dw => ({
+    ...dw,
+    synonyms: builtinSynonyms[dw.id] || []
+  }));
   const newCustom: VocabularyWord[] = [];
 
   customWords.forEach(cw => {
@@ -19,6 +23,7 @@ const mergeWords = (defaultWords: VocabularyWord[], customWords: VocabularyWord[
         difficulty: cw.difficulty || defaultCopy[idx].difficulty,
         partOfSpeech: cw.partOfSpeech || defaultCopy[idx].partOfSpeech,
         topic: cw.topic || defaultCopy[idx].topic,
+        synonyms: cw.synonyms || defaultCopy[idx].synonyms || [],
         isCustom: true
       };
     } else {
@@ -84,7 +89,8 @@ const validateCustomWords = (wordsList: Partial<VocabularyWord>[]): VocabularyWo
       exampleTranslation: typeof item.exampleTranslation === 'string' ? item.exampleTranslation.trim() : '',
       topic,
       difficulty,
-      isCustom: true
+      isCustom: true,
+      synonyms: Array.isArray(item.synonyms) ? item.synonyms : []
     };
     validWords.push(cleanWord);
   }
@@ -228,7 +234,8 @@ export const useVocabulary = () => {
             status,
             lastStudiedAt: progressItem.lastStudiedAt,
             correctCount,
-            incorrectCount
+            incorrectCount,
+            isStarred: !!progressItem.isStarred
           };
         }
       });
@@ -242,7 +249,8 @@ export const useVocabulary = () => {
           wordId: w.id,
           status: 'new',
           correctCount: 0,
-          incorrectCount: 0
+          incorrectCount: 0,
+          isStarred: false
         };
         needsRewrite = true;
       }
@@ -386,7 +394,8 @@ export const useVocabulary = () => {
       example: typeof newWord.example === 'string' ? newWord.example.trim() : '',
       exampleTranslation: typeof newWord.exampleTranslation === 'string' ? newWord.exampleTranslation.trim() : '',
       topic,
-      difficulty
+      difficulty,
+      synonyms: Array.isArray(newWord.synonyms) ? newWord.synonyms : []
     };
 
     const cleanSpelling = trimmedWordName.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -451,6 +460,7 @@ export const useVocabulary = () => {
           status: 'new' as LearningStatus,
           correctCount: 0,
           incorrectCount: 0,
+          isStarred: false
         }
       };
       const successProgress = safeSaveToLocalStorage('toeic-vocab-progress', Object.values(updated));
@@ -506,6 +516,26 @@ export const useVocabulary = () => {
     }
   };
 
+  const toggleWordStarred = (wordId: string) => {
+    const wordExists = words.some(w => w.id === wordId);
+    if (!wordExists) {
+      return;
+    }
+    const currentProgress = progressRef.current;
+    const existing = currentProgress[wordId] || { wordId, status: 'new' as LearningStatus, correctCount: 0, incorrectCount: 0, isStarred: false };
+    const updated = {
+      ...currentProgress,
+      [wordId]: {
+        ...existing,
+        isStarred: !existing.isStarred
+      }
+    };
+    const success = safeSaveToLocalStorage('toeic-vocab-progress', Object.values(updated));
+    if (success) {
+      setProgress(updated);
+    }
+  };
+
   const resetProgress = (): boolean => {
     const currentProgress = progressRef.current;
     const resetMap: Record<string, UserWordProgress> = {};
@@ -514,7 +544,8 @@ export const useVocabulary = () => {
         wordId,
         status: 'new',
         correctCount: 0,
-        incorrectCount: 0
+        incorrectCount: 0,
+        isStarred: false
       };
     });
     words.forEach(w => {
@@ -522,7 +553,8 @@ export const useVocabulary = () => {
         wordId: w.id,
         status: 'new',
         correctCount: 0,
-        incorrectCount: 0
+        incorrectCount: 0,
+        isStarred: false
       };
     });
 
@@ -548,7 +580,8 @@ export const useVocabulary = () => {
     updateWordStatus,
     incrementWordStats,
     recordStudySession,
-    resetProgress
+    resetProgress,
+    toggleWordStarred
   };
 };
 

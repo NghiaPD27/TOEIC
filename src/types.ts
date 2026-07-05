@@ -11,6 +11,7 @@ export interface VocabularyWord {
   topic: 'Office' | 'Marketing' | 'Finance' | 'Personnel' | 'Travel';
   difficulty: 'easy' | 'medium' | 'hard';
   isCustom?: boolean;
+  synonyms?: string[];
 }
 
 export interface UserWordProgress {
@@ -19,6 +20,7 @@ export interface UserWordProgress {
   lastStudiedAt?: string;
   correctCount: number;
   incorrectCount: number;
+  isStarred?: boolean;
 }
 
 export interface UserStats {
@@ -52,5 +54,21 @@ export interface GrammarTopic {
 export interface GrammarProgress {
   theoryCompleted: boolean;
   maxQuizScore: number | null;
+}
+
+export interface TestQuestion {
+  wordId: string;
+  word: VocabularyWord;
+  type: 'multiple-choice' | 'spelling' | 'listening';
+  questionText: string;
+  correctAnswer: string;
+  options: string[];
+}
+
+export interface TestAnswer {
+  wordId: string;
+  question: TestQuestion;
+  selectedAnswer: string;
+  isCorrect: boolean;
 }
 
