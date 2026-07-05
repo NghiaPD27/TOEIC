@@ -1,17 +1,30 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { GraduationCap, Search, BookOpen, ArrowRight, Volume2, RotateCcw } from 'lucide-react';
+import { GraduationCap, Search, BookOpen, ArrowRight, Volume2, RotateCcw, Award } from 'lucide-react';
 import type { StreakState, GrammarProgress } from '../types';
+import type { AccentTheme } from '../utils/helpers';
 
 interface DashboardViewProps {
   learningWordsCount: number;
   streak: StreakState;
-  handleTabChange: (newTab: 'dashboard' | 'study' | 'test' | 'library' | 'grammar' | 'pronunciation') => void;
+  handleTabChange: (newTab: 'dashboard' | 'study' | 'test' | 'library' | 'grammar' | 'pronunciation' | 'game') => void;
   resetProgress: () => boolean;
   setGrammarProgress: React.Dispatch<React.SetStateAction<Record<string, GrammarProgress>>>;
   navigate: (path: string) => void;
   location: { pathname: string };
+  theme: AccentTheme;
 }
+
+const defaultBlueTheme = {
+  bg: 'bg-blue-600',
+  hoverBg: 'hover:bg-blue-700',
+  text: 'text-blue-455 text-blue-400',
+  border: 'border-blue-500',
+  borderHover: 'hover:border-blue-500/50',
+  lightBg: 'bg-blue-500/10',
+  lightBorder: 'border-blue-500/30',
+  focusBorder: 'focus:border-blue-500'
+};
 
 export function DashboardView({
   learningWordsCount,
@@ -20,8 +33,10 @@ export function DashboardView({
   resetProgress,
   setGrammarProgress,
   navigate,
-  location
+  location,
+  theme: themeProp
 }: DashboardViewProps) {
+  const theme = themeProp || defaultBlueTheme;
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Welcome back!</h2>
@@ -37,14 +52,14 @@ export function DashboardView({
         {/* Vocabulary Grid */}
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-slate-300">Vocabulary Training</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <motion.div
               whileHover={{ scale: 1.02 }}
               onClick={() => handleTabChange('study')}
-              className="bg-slate-800 border border-slate-700 hover:border-blue-500/50 p-6 rounded-2xl cursor-pointer transition-colors flex flex-col justify-between h-40"
+              className={`bg-slate-800 border border-slate-700 ${theme.borderHover} p-6 rounded-2xl cursor-pointer transition-colors flex flex-col justify-between h-40`}
             >
               <div className="flex justify-between items-start">
-                <div className="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
+                <div className={`p-3 ${theme.lightBg} ${theme.text} rounded-xl`}>
                   <BookOpen className="w-6 h-6" />
                 </div>
                 <ArrowRight className="w-5 h-5 text-slate-500" />
@@ -58,27 +73,45 @@ export function DashboardView({
             <motion.div
               whileHover={{ scale: 1.02 }}
               onClick={() => handleTabChange('test')}
-              className="bg-slate-800 border border-slate-700 hover:border-blue-500/50 p-6 rounded-2xl cursor-pointer transition-colors flex flex-col justify-between h-40"
+              className={`bg-slate-800 border border-slate-700 ${theme.borderHover} p-6 rounded-2xl cursor-pointer transition-colors flex flex-col justify-between h-40`}
             >
               <div className="flex justify-between items-start">
-                <div className="p-3 bg-purple-500/10 text-purple-400 rounded-xl">
+                <div className={`p-3 ${theme.lightBg} ${theme.text} rounded-xl`}>
                   <GraduationCap className="w-6 h-6" />
                 </div>
                 <ArrowRight className="w-5 h-5 text-slate-500" />
               </div>
               <div>
                 <h4 className="text-xl font-bold text-slate-100">Test Practice</h4>
-                <p className="text-sm text-slate-400 mt-1">Take a 10-question quiz to test your memory.</p>
+                <p className="text-sm text-slate-400 mt-1">Take a custom quiz to test your memory.</p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              onClick={() => handleTabChange('game')}
+              data-testid="home-nav-game"
+              className={`bg-slate-800 border border-slate-700 ${theme.borderHover} p-6 rounded-2xl cursor-pointer transition-colors flex flex-col justify-between h-40`}
+            >
+              <div className="flex justify-between items-start">
+                <div className={`p-3 ${theme.lightBg} ${theme.text} rounded-xl`}>
+                  <Award className="w-6 h-6" />
+                </div>
+                <ArrowRight className="w-5 h-5 text-slate-500" />
+              </div>
+              <div>
+                <h4 className="text-xl font-bold text-slate-100">Match Game</h4>
+                <p className="text-sm text-slate-400 mt-1">Match words with definitions interactively.</p>
               </div>
             </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.02 }}
               onClick={() => handleTabChange('library')}
-              className="bg-slate-800 border border-slate-700 hover:border-blue-500/50 p-6 rounded-2xl cursor-pointer transition-colors flex flex-col justify-between h-40"
+              className={`bg-slate-800 border border-slate-700 ${theme.borderHover} p-6 rounded-2xl cursor-pointer transition-colors flex flex-col justify-between h-40`}
             >
               <div className="flex justify-between items-start">
-                <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
+                <div className={`p-3 ${theme.lightBg} ${theme.text} rounded-xl`}>
                   <Search className="w-6 h-6" />
                 </div>
                 <ArrowRight className="w-5 h-5 text-slate-500" />
@@ -98,10 +131,10 @@ export function DashboardView({
             <motion.div
               whileHover={{ scale: 1.02 }}
               onClick={() => handleTabChange('grammar')}
-              className="bg-slate-800 border border-slate-700 hover:border-indigo-500/50 p-6 rounded-2xl cursor-pointer transition-colors flex flex-col justify-between h-40 col-span-1"
+              className={`bg-slate-800 border border-slate-700 ${theme.borderHover} p-6 rounded-2xl cursor-pointer transition-colors flex flex-col justify-between h-40 col-span-1`}
             >
               <div className="flex justify-between items-start">
-                <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl">
+                <div className={`p-3 ${theme.lightBg} ${theme.text} rounded-xl`}>
                   <BookOpen className="w-6 h-6" />
                 </div>
                 <ArrowRight className="w-5 h-5 text-slate-500" />
@@ -116,10 +149,10 @@ export function DashboardView({
               whileHover={{ scale: 1.02 }}
               onClick={() => handleTabChange('pronunciation')}
               data-testid="home-nav-pronunciation"
-              className="bg-slate-800 border border-slate-700 hover:border-orange-500/50 p-6 rounded-2xl cursor-pointer transition-colors flex flex-col justify-between h-40 col-span-1"
+              className={`bg-slate-800 border border-slate-700 ${theme.borderHover} p-6 rounded-2xl cursor-pointer transition-colors flex flex-col justify-between h-40 col-span-1`}
             >
               <div className="flex justify-between items-start">
-                <div className="p-3 bg-orange-500/10 text-orange-400 rounded-xl">
+                <div className={`p-3 ${theme.lightBg} ${theme.text} rounded-xl`}>
                   <Volume2 className="w-6 h-6" />
                 </div>
                 <ArrowRight className="w-5 h-5 text-slate-500" />

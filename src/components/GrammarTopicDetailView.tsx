@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { BookOpen, AlertCircle, Sparkles, Check, ArrowRight } from 'lucide-react';
+import { BookOpen, AlertCircle, Check, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { grammarTopics } from '../data/grammar';
 import type { GrammarProgress } from '../types';
+import type { AccentTheme } from '../utils/helpers';
 
 interface Section {
   title: string;
@@ -40,218 +41,201 @@ function parseSectionLines(lines: string[]): ReactNode[] {
       i++;
       continue;
     }
-    
-    // 1. Check for Table block
+
+    // 1. Table support (starts with |)
     if (line.startsWith('|')) {
       const tableLines: string[] = [];
       while (i < lines.length && lines[i].trim().startsWith('|')) {
         tableLines.push(lines[i].trim());
         i++;
       }
-      
-      if (tableLines.length >= 3) {
-        const headers = tableLines[0]
-          .split('|')
-          .map(c => c.trim())
-          .filter((_c, idx, arr) => idx > 0 && idx < arr.length - 1);
-          
-        const rows = tableLines.slice(2).map(rowLine => {
-          return rowLine
+
+      if (tableLines.length > 0) {
+        // Parse rows
+        const rows = tableLines.map((row) =>
+          row
             .split('|')
-            .map(c => c.trim())
-            .filter((_c, idx, arr) => idx > 0 && idx < arr.length - 1);
-        });
-        
-        renderedElements.push(
-          <div key={`table-${i}`} className="overflow-x-auto my-5 border border-slate-700/50 rounded-2xl shadow-lg bg-slate-900/40 animate-fadeIn">
-            <table className="w-full text-left border-collapse text-xs md:text-sm">
-              <thead>
-                <tr className="bg-slate-900/90 border-b border-slate-700/80">
-                  {headers.map((h, idx) => (
-                    <th key={`th-${idx}`} className="px-4 py-3.5 font-bold text-slate-200 uppercase tracking-wider">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {rows.map((row, rowIdx) => (
-                  <tr key={`tr-${rowIdx}`} className="hover:bg-slate-850/40 transition-colors">
-                    {row.map((cell, cellIdx) => {
-                      const isFormula = cell.includes('+') || cell.match(/\b(S|V|O)\b/);
-                      return (
-                        <td key={`td-${cellIdx}`} className={`px-4 py-3 text-slate-300 leading-relaxed ${isFormula ? 'font-mono text-indigo-300 bg-slate-900/20' : ''}`}>
+            .map((cell) => cell.trim())
+            .filter((_, idx, arr) => idx > 0 && idx < arr.length - 1)
+        );
+
+        if (rows.length > 0) {
+          const headers = rows[0];
+          const dataRows = rows.slice(2);
+
+          renderedElements.push(
+            <div key={`table-${i}`} className="my-5 overflow-x-auto border border-slate-700/60 rounded-2xl shadow-inner">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-900 border-b border-slate-750">
+                    {headers.map((h, idx) => (
+                      <th key={idx} className="p-3.5 font-extrabold text-slate-200 tracking-wide">
+                        {formatBoldText(h)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {dataRows.map((r, rIdx) => (
+                    <tr key={rIdx} className="hover:bg-slate-900/40 transition-colors">
+                      {r.map((cell, cIdx) => (
+                        <td key={cIdx} className="p-3 text-slate-300 leading-relaxed font-medium">
                           {formatBoldText(cell)}
                         </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+      }
+      continue;
+    }
+
+    // 2. Alert blocks (starts with > [!WARNING] or > [!NOTE])
+    if (line.startsWith('>')) {
+      const alertLines: string[] = [];
+      let isWarning = false;
+      let isNote = false;
+
+      while (i < lines.length && lines[i].trim().startsWith('>')) {
+        const rawLine = lines[i].trim();
+        const cleaned = rawLine.substring(1).trim();
+
+        if (cleaned.startsWith('[!WARNING]')) {
+          isWarning = true;
+        } else if (cleaned.startsWith('[!NOTE]')) {
+          isNote = true;
+        } else {
+          alertLines.push(cleaned);
+        }
+        i++;
+      }
+
+      if (alertLines.length > 0) {
+        renderedElements.push(
+          <div
+            key={`alert-${i}`}
+            className={`my-4 p-4 border rounded-2xl flex gap-3 shadow-md ${
+              isWarning
+                ? 'bg-rose-500/5 border-rose-500/20 text-rose-350'
+                : isNote
+                  ? 'bg-indigo-500/5 border-indigo-500/20 text-indigo-350'
+                  : 'bg-slate-900/50 border-slate-750 text-slate-300'
+            }`}
+          >
+            <AlertCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+              isWarning ? 'text-rose-400' : 'text-indigo-400'
+            }`} />
+            <div className="space-y-1 text-xs md:text-sm leading-relaxed">
+              {alertLines.map((al, idx) => (
+                <p key={idx}>{formatBoldText(al)}</p>
+              ))}
+            </div>
           </div>
         );
       }
       continue;
     }
 
-    // 2. Check for Examples and Translations
-    const exampleMatch = line.match(/^-\s*Example\s*(\d*:?)\s*(.+)$/i);
-    if (exampleMatch) {
-      const exampleNum = exampleMatch[1];
-      const exampleEnglish = exampleMatch[2];
-      
-      let translationText = "";
-      if (i + 1 < lines.length && lines[i + 1].trim().startsWith('-> Dịch:')) {
-        translationText = lines[i + 1].trim().replace(/^->\s*Dịch:\s*/, "");
-        i++;
-      } else if (i + 1 < lines.length && lines[i + 1].trim().startsWith('->')) {
-        translationText = lines[i + 1].trim().replace(/^->\s*/, "");
+    // 3. Unordered list items (starts with - or *)
+    if (line.startsWith('-') || line.startsWith('*')) {
+      const listItems: string[] = [];
+      while (i < lines.length && (lines[i].trim().startsWith('-') || lines[i].trim().startsWith('*'))) {
+        const rawLine = lines[i].trim();
+        listItems.push(rawLine.substring(1).trim());
         i++;
       }
-      
+
+      if (listItems.length > 0) {
+        renderedElements.push(
+          <ul key={`list-${i}`} className="list-disc pl-6 space-y-2 text-xs md:text-sm text-slate-350 leading-relaxed my-3 font-medium">
+            {listItems.map((item, idx) => (
+              <li key={idx} className="pl-1">
+                {formatBoldText(item)}
+              </li>
+            ))}
+          </ul>
+        );
+      }
+      continue;
+    }
+
+    // 4. Practical examples block (starts with e.g. or Example:)
+    if (line.toLowerCase().startsWith('e.g.') || line.toLowerCase().startsWith('example:')) {
       renderedElements.push(
-        <div key={`example-${i}`} className="bg-slate-900/30 border border-slate-800 hover:border-slate-700/85 rounded-2xl p-5 my-3.5 transition-all shadow-md hover:shadow-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
-              Example {exampleNum.replace(/:$/, '') || ''}
-            </span>
-          </div>
-          <p className="text-slate-200 font-semibold text-sm leading-relaxed">{formatBoldText(exampleEnglish)}</p>
-          {translationText && (
-            <p className="text-emerald-400 text-xs italic mt-2 flex items-start gap-1.5 leading-normal">
-              <span className="text-emerald-500 font-bold select-none">→</span>
-              <span>{formatBoldText(translationText)}</span>
-            </p>
-          )}
+        <div key={`example-${i}`} className="my-3 pl-4 border-l-4 border-slate-600 space-y-1">
+          <p className="text-xs text-slate-450 uppercase font-bold tracking-wider">Ví dụ minh họa</p>
+          <p className="text-xs md:text-sm text-slate-200 font-semibold italic">
+            {formatBoldText(line)}
+          </p>
         </div>
       );
       i++;
       continue;
     }
 
-    // 3. Check for Sub-headings
-    const subHeadingMatch = line.match(/^(\d+\..+?:)$/);
-    if (subHeadingMatch) {
-      const headingText = subHeadingMatch[1];
-      renderedElements.push(
-        <h5 key={`sub-heading-${i}`} className="text-sm font-bold text-indigo-300 uppercase tracking-wide mt-5 mb-2">
-          {headingText}
-        </h5>
-      );
-      i++;
-      continue;
-    }
-
-    // 4. Check for Bullet points
-    if (line.startsWith('-') || line.startsWith('*')) {
-      const cleanContent = line.replace(/^[-*]\s*/, "");
-      renderedElements.push(
-        <div key={`bullet-${i}`} className="flex items-start gap-2.5 pl-2 py-1 text-sm text-slate-300 leading-relaxed">
-          <span className="text-indigo-500 font-bold select-none mt-0.5">•</span>
-          <span>{formatBoldText(cleanContent)}</span>
-        </div>
-      );
-      i++;
-      continue;
-    }
-
-    // Default: Plain paragraph text
+    // 5. Standard paragraph text (fallback)
     renderedElements.push(
-      <p key={`p-${i}`} className="text-slate-300 text-sm leading-relaxed my-2">
+      <p key={`para-${i}`} className="text-xs md:text-sm text-slate-350 leading-relaxed font-medium">
         {formatBoldText(line)}
       </p>
     );
     i++;
   }
-  
+
   return renderedElements;
 }
 
-function FormattedGrammarContent({ content }: FormattedGrammarContentProps) {
-  const lines = content.split('\n');
-  const sections: Section[] = [];
-  let currentSection: Section = { title: "", lines: [] };
-  
-  lines.forEach(line => {
-    const trimmed = line.trim();
-    const majorHeaderMatch = trimmed.match(/^\*\*([IVXLCDM]+\..+?)\*\*/);
-    if (majorHeaderMatch) {
-      if (currentSection.title || currentSection.lines.length > 0) {
-        sections.push(currentSection);
+export function FormattedGrammarContent({ content }: FormattedGrammarContentProps) {
+  // Parse grammar lesson theory block into sections based on "# " or "## " headers
+  const sections = useMemo(() => {
+    const rawLines = content.split('\n');
+    const parsedSections: Section[] = [];
+    let currentSection: Section | null = null;
+
+    rawLines.forEach((line) => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('#') || trimmed.startsWith('##')) {
+        // Save previous section if exists
+        if (currentSection) {
+          parsedSections.push(currentSection);
+        }
+        
+        // Start a new section
+        const title = trimmed.replace(/^#+\s*/, '');
+        currentSection = { title, lines: [] };
+      } else {
+        if (!currentSection) {
+          currentSection = { title: 'Tổng quan bài học', lines: [] };
+        }
+        currentSection.lines.push(line);
       }
-      currentSection = { title: majorHeaderMatch[1], lines: [] };
-    } else {
-      currentSection.lines.push(line);
+    });
+
+    if (currentSection) {
+      parsedSections.push(currentSection);
     }
-  });
-  if (currentSection.title || currentSection.lines.length > 0) {
-    sections.push(currentSection);
-  }
+
+    return parsedSections;
+  }, [content]);
 
   return (
-    <div className="space-y-8">
-      {sections.map((section, sectionIdx) => {
-        const isIntro = !section.title;
-        const isWarning = section.title.includes('III.');
-        const isExample = section.title.includes('IV.');
-        
-        if (isIntro) {
-          return (
-            <div key={`section-intro-${sectionIdx}`} className="space-y-3">
-              {parseSectionLines(section.lines)}
-            </div>
-          );
-        }
-        
-        let cardBgClass = "";
-        let titleColorClass = "text-indigo-400";
-        let iconElement = <BookOpen className="w-5 h-5" />;
-        
-        if (isWarning) {
-          cardBgClass = "bg-amber-500/5 border border-amber-500/20 rounded-2xl p-6 shadow-md";
-          titleColorClass = "text-amber-400";
-          iconElement = <AlertCircle className="w-5 h-5" />;
-        } else if (isExample) {
-          titleColorClass = "text-sky-400";
-          iconElement = <Sparkles className="w-5 h-5" />;
-        }
-        
-        if (isWarning) {
-          return (
-            <div key={`section-${sectionIdx}`} className={`space-y-4 ${cardBgClass}`}>
-              <h4 className={`text-sm md:text-md font-bold flex items-center gap-2.5 ${titleColorClass}`}>
-                {iconElement}
-                {section.title}
-              </h4>
-              <div className="space-y-4">
-                {parseSectionLines(section.lines)}
-              </div>
-            </div>
-          );
-        }
-        
-        if (isExample) {
-          return (
-            <div key={`section-${sectionIdx}`} className="space-y-4">
-              <h4 className={`text-md md:text-lg font-bold flex items-center gap-2.5 pb-3 border-b border-slate-700/50 ${titleColorClass}`}>
-                {iconElement}
-                {section.title}
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {parseSectionLines(section.lines)}
-              </div>
-            </div>
-          );
-        }
-        
+    <div className="space-y-6">
+      {sections.map((section, sIdx) => {
+        // Skip rendering section header if it's the default overview
+        const isOverview = section.title === 'Tổng quan bài học';
+
         return (
-          <div key={`section-${sectionIdx}`} className="space-y-4">
-            <h4 className={`text-md md:text-lg font-bold flex items-center gap-2.5 pb-3 border-b border-slate-700/50 ${titleColorClass}`}>
-              {iconElement}
-              {section.title}
-            </h4>
-            <div className="space-y-4">
+          <div key={sIdx} className="space-y-3.5">
+            {!isOverview && (
+              <h4 className="text-md md:text-lg font-black text-slate-100 border-l-4 border-indigo-500 pl-3">
+                {section.title}
+              </h4>
+            )}
+            <div className="space-y-2.5">
               {parseSectionLines(section.lines)}
             </div>
           </div>
@@ -265,33 +249,68 @@ interface GrammarTopicDetailViewProps {
   grammarProgress: Record<string, GrammarProgress>;
   setGrammarProgress: React.Dispatch<React.SetStateAction<Record<string, GrammarProgress>>>;
   setStorageError: (err: boolean) => void;
+  theme: AccentTheme;
 }
+
+const defaultBlueTheme = {
+  bg: 'bg-blue-600',
+  hoverBg: 'hover:bg-blue-700',
+  text: 'text-blue-455 text-blue-400',
+  border: 'border-blue-500',
+  borderHover: 'hover:border-blue-500/50',
+  lightBg: 'bg-blue-500/10',
+  lightBorder: 'border-blue-500/30',
+  focusBorder: 'focus:border-blue-500'
+};
 
 export function GrammarTopicDetailView({
   grammarProgress,
   setGrammarProgress,
-  setStorageError
+  setStorageError,
+  theme: themeProp
 }: GrammarTopicDetailViewProps) {
+  const theme = themeProp || defaultBlueTheme;
   const { topicId } = useParams<{ topicId: string }>();
   const navigate = useNavigate();
 
   const [grammarSubTab, setGrammarSubTab] = useState<'theory' | 'quiz'>('theory');
-  const [currentGrammarQuestionIndex, setCurrentGrammarQuestionIndex] = useState<number>(0);
-  const [grammarAnswers, setGrammarAnswers] = useState<string[]>([]);
-  const [selectedGrammarOption, setSelectedGrammarOption] = useState<string>('');
-  const [showQuizResults, setShowQuizResults] = useState<boolean>(false);
 
-  const currentTopic = grammarTopics.find(t => t.id === topicId);
-  if (!currentTopic) return null;
-  const progress = grammarProgress[currentTopic.id] || { theoryCompleted: false, maxQuizScore: null };
+  // Quiz running state
+  const [currentGrammarQuestionIndex, setCurrentGrammarQuestionIndex] = useState(0);
+  const [selectedGrammarOption, setSelectedGrammarOption] = useState('');
+  const [grammarAnswers, setGrammarAnswers] = useState<{ isCorrect: boolean; selectedOption: string }[]>([]);
+  const [showQuizResults, setShowQuizResults] = useState(false);
 
-  return (
-    <div className="space-y-6 max-w-3xl mx-auto w-full">
-      {/* Back Button and Header */}
-      <div className="flex items-center gap-4">
+  const currentTopic = grammarTopics.find((t) => t.id === topicId);
+
+  if (!currentTopic) {
+    return (
+      <div className="text-center py-16 bg-slate-800 border border-slate-700 rounded-3xl text-slate-400 space-y-4 shadow-md max-w-xl mx-auto">
+        <AlertCircle className="w-12 h-12 mx-auto text-rose-500" />
+        <h4 className="text-lg font-bold">Chuyên đề không tồn tại</h4>
         <button
           onClick={() => navigate('/grammar')}
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-sm font-semibold cursor-pointer transition-colors"
+          className="py-2.5 px-4 bg-slate-900 border border-slate-700 hover:bg-slate-950 text-slate-200 text-sm font-semibold rounded-xl cursor-pointer transition-colors"
+        >
+          Quay lại danh mục
+        </button>
+      </div>
+    );
+  }
+
+  const progress = grammarProgress[currentTopic.id] || {
+    theoryCompleted: false,
+    maxQuizScore: null
+  };
+
+  return (
+    <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto w-full py-4">
+      {/* Title & Back Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <button
+          data-testid="back-to-grammar-btn"
+          onClick={() => navigate('/grammar')}
+          className="text-xs text-slate-450 hover:text-slate-200 font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
         >
           ← Back to Topics
         </button>
@@ -305,7 +324,7 @@ export function GrammarTopicDetailView({
           onClick={() => setGrammarSubTab('theory')}
           className={`px-6 py-3 font-bold text-sm cursor-pointer transition-all ${
             grammarSubTab === 'theory'
-              ? 'border-b-2 border-blue-500 text-blue-400'
+              ? 'border-b-2 ' + theme.border + ' ' + theme.text
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
@@ -322,7 +341,7 @@ export function GrammarTopicDetailView({
           }}
           className={`px-6 py-3 font-bold text-sm cursor-pointer transition-all ${
             grammarSubTab === 'quiz'
-              ? 'border-b-2 border-blue-500 text-blue-400'
+              ? 'border-b-2 ' + theme.border + ' ' + theme.text
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
@@ -366,7 +385,7 @@ export function GrammarTopicDetailView({
               className={`px-5 py-3 rounded-xl font-bold text-sm transition-all cursor-pointer ${
                 progress.theoryCompleted
                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : theme.bg + ' ' + theme.hoverBg + ' text-white'
               }`}
             >
               {progress.theoryCompleted ? 'Theory Read' : 'Mark as Read'}
@@ -379,37 +398,36 @@ export function GrammarTopicDetailView({
       {grammarSubTab === 'quiz' && (
         <div className="space-y-6">
           {!showQuizResults ? (() => {
-            const q = currentTopic.questions[currentGrammarQuestionIndex];
-            if (!q) return null;
+            const activeQuestion = currentTopic.questions[currentGrammarQuestionIndex];
+            if (!activeQuestion) return null;
+
             return (
-              <div
-                data-testid="grammar-quiz-card"
-                className="bg-slate-800 border border-slate-700 rounded-3xl p-8 flex flex-col space-y-6 shadow-2xl"
-              >
-                <div className="flex justify-between items-center text-xs font-semibold text-slate-400">
-                  <span className="uppercase tracking-widest text-indigo-400">
-                    Practice Quiz
+              <div data-testid="grammar-quiz-card" className="bg-slate-800 border border-slate-700 rounded-3xl p-6 md:p-8 space-y-6 shadow-2xl">
+                <div className="flex justify-between items-center border-b border-slate-700/50 pb-4">
+                  <span className="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                    Question {currentGrammarQuestionIndex + 1} of {currentTopic.questions.length}
                   </span>
-                  <span>
-                    Question {currentGrammarQuestionIndex + 1} of 5
+                  <span className="text-xs font-bold text-indigo-400 bg-indigo-500/10 py-1 px-2.5 rounded-lg border border-indigo-500/20">
+                    TOEIC Style
                   </span>
                 </div>
 
-                <h3 className="text-xl font-bold leading-snug">
-                  {q.questionText}
-                </h3>
+                <div className="space-y-4">
+                  <p className="text-lg font-bold text-slate-100 leading-normal">
+                    {activeQuestion.questionText}
+                  </p>
+                </div>
 
-                <div className="grid grid-cols-1 gap-3">
-                  {q.options.map((option) => (
+                <div className="grid grid-cols-1 gap-2.5">
+                  {activeQuestion.options.map((option, idx) => (
                     <button
-                      key={option}
+                      key={idx}
                       data-testid="grammar-option-btn"
-                      data-selected={selectedGrammarOption === option ? "true" : "false"}
                       onClick={() => setSelectedGrammarOption(option)}
-                      className={`w-full py-4 px-4 text-left border rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+                      className={`w-full py-3.5 px-4 rounded-xl text-left text-sm font-semibold border transition-all cursor-pointer ${
                         selectedGrammarOption === option
-                          ? 'bg-indigo-600 border-indigo-500 text-white'
-                          : 'bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-750'
+                          ? theme.bg + ' ' + theme.border + ' text-white shadow-md'
+                          : 'bg-slate-900 border-slate-750 hover:bg-slate-750 text-slate-350 hover:border-slate-600'
                       }`}
                     >
                       {option}
@@ -421,22 +439,27 @@ export function GrammarTopicDetailView({
                   data-testid="grammar-submit-q-btn"
                   disabled={!selectedGrammarOption}
                   onClick={() => {
-                    const updatedAnswers = [...grammarAnswers, selectedGrammarOption];
-                    setGrammarAnswers(updatedAnswers);
-                    setSelectedGrammarOption('');
+                    const isCorrect = selectedGrammarOption === activeQuestion.correctAnswer;
+                    const nextAnswers = [...grammarAnswers, { isCorrect, selectedOption: selectedGrammarOption }];
+                    setGrammarAnswers(nextAnswers);
 
-                    if (currentGrammarQuestionIndex + 1 < 5) {
-                      setCurrentGrammarQuestionIndex(prev => prev + 1);
+                    if (currentGrammarQuestionIndex + 1 < currentTopic.questions.length) {
+                      setCurrentGrammarQuestionIndex((prev) => prev + 1);
+                      setSelectedGrammarOption('');
                     } else {
-                      const score = updatedAnswers.reduce((acc, ans, idx) => acc + (ans === currentTopic.questions[idx].correctAnswer ? 1 : 0), 0);
-                      const newMaxScore = progress.maxQuizScore === null ? score : Math.max(progress.maxQuizScore, score);
+                      // Quiz finished
+                      const score = nextAnswers.filter((a) => a.isCorrect).length;
+                      const currentMax = progress.maxQuizScore || 0;
+                      const newHighScore = Math.max(currentMax, score);
+
                       const updated = {
                         ...grammarProgress,
                         [currentTopic.id]: {
                           ...progress,
-                          maxQuizScore: newMaxScore
+                          maxQuizScore: newHighScore
                         }
                       };
+
                       try {
                         localStorage.setItem('toeic-grammar-progress', JSON.stringify(updated));
                         setGrammarProgress(updated);
@@ -460,7 +483,7 @@ export function GrammarTopicDetailView({
                   }}
                   className={`w-full py-4 px-6 font-bold rounded-xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 ${
                     selectedGrammarOption
-                      ? 'bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white'
+                      ? 'text-white ' + theme.bg + ' ' + theme.hoverBg
                       : 'bg-slate-750 text-slate-500 border border-slate-700 cursor-not-allowed'
                   }`}
                 >
@@ -480,56 +503,62 @@ export function GrammarTopicDetailView({
                 <p className="text-sm text-slate-400">Here is your score and detailed explanations.</p>
               </div>
 
-              {/* score counts */}
-              <div className="text-center border-t border-b border-slate-700 py-6">
-                <div className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Your Score</div>
-                <div data-testid="grammar-quiz-score" className="text-4xl font-extrabold text-slate-200">
-                  {grammarAnswers.reduce((acc, ans, idx) => acc + (ans === currentTopic.questions[idx].correctAnswer ? 1 : 0), 0)} / 5
+              {/* Score Display */}
+              <div className="bg-slate-900/50 border border-slate-750 rounded-2xl p-5 text-center max-w-xs w-full mx-auto shadow-inner">
+                <p className="text-[10px] text-slate-550 uppercase tracking-widest font-extrabold mb-1">SCORE RECEIVED</p>
+                <div data-testid="grammar-quiz-score" className="text-3xl font-black text-slate-100">
+                  {grammarAnswers.filter((a) => a.isCorrect).length}
+                  <span className="text-slate-550 text-lg"> / {currentTopic.questions.length}</span>
                 </div>
+                <p className="text-xs text-indigo-400 font-semibold mt-1">
+                  High score: {progress.maxQuizScore || 0} / 5
+                </p>
               </div>
 
-              {/* review list of items */}
-              <div className="space-y-4">
-                <h4 className="font-bold text-md text-slate-300">Detailed Explanations</h4>
-                <div className="space-y-6">
+              {/* Explanations List */}
+              <div className="space-y-4 pt-4 border-t border-slate-750/70">
+                <h4 className="font-bold text-slate-350 text-sm">Xem giải thích đáp án chi tiết:</h4>
+                <div className="grid grid-cols-1 gap-3.5 max-h-96 overflow-y-auto pr-1">
                   {currentTopic.questions.map((q, idx) => {
-                    const userAns = grammarAnswers[idx];
+                    const ans = grammarAnswers[idx];
+                    const isCorrect = ans?.isCorrect || false;
+
                     return (
                       <div
-                        key={q.id}
+                        key={idx}
                         data-testid={`grammar-review-item-${q.id}`}
-                        className="bg-slate-900/50 border border-slate-700 p-6 rounded-2xl space-y-4"
+                        className={`p-4 border rounded-2xl flex flex-col gap-2 ${
+                          isCorrect
+                            ? 'bg-emerald-500/5 border-emerald-500/20'
+                            : 'bg-rose-500/5 border-rose-500/20'
+                        }`}
                       >
-                        <h5 className="font-bold text-sm text-slate-100">
-                          {idx + 1}. {q.questionText}
-                        </h5>
-
-                        <div className="grid grid-cols-1 gap-2 pl-2">
-                          {q.options.map((opt) => {
-                            const isOptSelected = opt === userAns;
-                            const isOptCorrect = opt === q.correctAnswer;
-                            let btnStyle = "bg-slate-800/30 border-slate-750 text-slate-400";
-                            if (isOptCorrect) {
-                              btnStyle = "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-medium";
-                            } else if (isOptSelected) {
-                              btnStyle = "bg-rose-500/10 border-rose-500/30 text-rose-400 font-medium";
-                            }
-                            return (
-                              <div
-                                key={opt}
-                                className={`py-2.5 px-4 border rounded-xl text-xs flex justify-between items-center ${btnStyle}`}
-                              >
-                                <span>{opt}</span>
-                                {isOptCorrect && <span className="text-[10px] uppercase font-bold tracking-wider">Correct</span>}
-                                {isOptSelected && !isOptCorrect && <span className="text-[10px] uppercase font-bold tracking-wider">Your Selection</span>}
-                              </div>
-                            );
-                          })}
+                        <div className="flex justify-between items-start gap-2">
+                          <p className="text-sm font-bold text-slate-200 leading-tight">
+                            Câu {idx + 1}: {q.questionText}
+                          </p>
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                            isCorrect ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-400'
+                          }`}>
+                            {isCorrect ? 'Correct' : 'Incorrect'}
+                          </span>
                         </div>
 
-                        <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 text-xs text-slate-300 space-y-1">
-                          <span className="font-bold text-indigo-400 uppercase tracking-wider text-[10px]">Explanation:</span>
-                          <p>{q.explanation}</p>
+                        <div className="text-xs space-y-1.5 pt-1.5 border-t border-slate-800">
+                          <p className="text-slate-350">
+                            Đáp án đã chọn: <span className={isCorrect ? 'text-emerald-400 font-semibold' : 'text-rose-400 font-semibold'}>{ans?.selectedOption}</span>
+                          </p>
+                          {!isCorrect && (
+                            <p className="text-slate-350">
+                              Đáp án đúng: <span className="text-emerald-400 font-semibold">{q.correctAnswer}</span>
+                            </p>
+                          )}
+                          <div className="bg-slate-900/40 p-3 border border-slate-800 rounded-xl mt-2 space-y-1">
+                            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold">Giải thích chi tiết</p>
+                            <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-line">
+                              {q.explanation}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     );
@@ -537,10 +566,10 @@ export function GrammarTopicDetailView({
                 </div>
               </div>
 
-              {/* Action buttons */}
-              <div className="flex gap-4">
+              {/* Action Buttons */}
+              <div className="flex gap-4 pt-4">
                 <button
-                  data-testid="grammar-retake-btn"
+                  data-testid="retake-quiz-btn"
                   onClick={() => {
                     setCurrentGrammarQuestionIndex(0);
                     setGrammarAnswers([]);
@@ -569,7 +598,8 @@ export function GrammarTopicDetailView({
 export function GrammarTopicDetailViewWrapper({
   grammarProgress,
   setGrammarProgress,
-  setStorageError
+  setStorageError,
+  theme
 }: GrammarTopicDetailViewProps) {
   const { topicId } = useParams<{ topicId: string }>();
   return (
@@ -578,6 +608,7 @@ export function GrammarTopicDetailViewWrapper({
       grammarProgress={grammarProgress}
       setGrammarProgress={setGrammarProgress}
       setStorageError={setStorageError}
+      theme={theme}
     />
   );
 }

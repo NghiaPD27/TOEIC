@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, Star, Volume2, ArrowRight } from 'lucide-react';
 import type { VocabularyWord, UserWordProgress } from '../types';
 import { formatPOS, getAimLabel } from '../utils/helpers';
+import type { AccentTheme } from '../utils/helpers';
 
 interface StudyViewProps {
   words: VocabularyWord[];
@@ -20,7 +21,19 @@ interface StudyViewProps {
   handleNextStudy: () => void;
   handleSpeak: (text: string) => void;
   setShowResetConfirm: (show: boolean) => void;
+  theme: AccentTheme;
 }
+
+const defaultBlueTheme = {
+  bg: 'bg-blue-600',
+  hoverBg: 'hover:bg-blue-700',
+  text: 'text-blue-455 text-blue-400',
+  border: 'border-blue-500',
+  borderHover: 'hover:border-blue-500/50',
+  lightBg: 'bg-blue-500/10',
+  lightBorder: 'border-blue-500/30',
+  focusBorder: 'focus:border-blue-500'
+};
 
 export function StudyView({
   words,
@@ -38,15 +51,17 @@ export function StudyView({
   handleMarkStatus,
   handleNextStudy,
   handleSpeak,
-  setShowResetConfirm
+  setShowResetConfirm,
+  theme: themeProp
 }: StudyViewProps) {
+  const theme = themeProp || defaultBlueTheme;
   return (
-    <div className="flex flex-col items-center justify-center max-w-xl mx-auto w-full py-6 space-y-6">
+    <div className="space-y-6 max-w-xl mx-auto w-full py-6 flex flex-col items-center">
       {studyDeck.length === 0 ? (
         starredOnly ? (
-          <div className="text-center py-12 bg-slate-800 border border-slate-700 rounded-3xl w-full p-8 flex flex-col items-center justify-center space-y-6 shadow-2xl animate-fadeIn">
+          <div className="text-center py-12 bg-slate-800 border border-slate-700 rounded-3xl w-full p-8 flex flex-col items-center justify-center space-y-6 shadow-xl animate-fadeIn">
             <div className="p-4 bg-amber-500/10 text-amber-400 rounded-full border border-amber-500/20">
-              <Star className="w-10 h-10 animate-pulse text-amber-400" />
+              <Star className="w-10 h-10 animate-pulse" />
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold text-slate-100">Không có từ đã lưu</h3>
@@ -56,7 +71,7 @@ export function StudyView({
             </div>
             <button
               onClick={() => setStarredOnly(false)}
-              className="py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all cursor-pointer text-sm"
+              className={`py-2.5 px-5 text-white font-bold rounded-xl transition-all cursor-pointer text-sm ${theme.bg} ${theme.hoverBg}`}
             >
               Xem tất cả từ vựng
             </button>
@@ -79,7 +94,7 @@ export function StudyView({
             <div className="flex flex-col sm:flex-row gap-3 pt-2 w-full max-w-xs justify-center">
               <button
                 onClick={() => setIsReviewMode(true)}
-                className="py-3 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all cursor-pointer shadow-md active:scale-95 text-center text-sm"
+                className={`py-3 px-5 text-white font-bold rounded-xl transition-all cursor-pointer shadow-md active:scale-95 text-center text-sm ${theme.bg} ${theme.hoverBg}`}
               >
                 Ôn tập từ đã thuộc
               </button>
@@ -100,14 +115,14 @@ export function StudyView({
           <div className="w-full flex justify-between items-center bg-slate-800 border border-slate-700 px-4 py-3 rounded-xl gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-slate-300 flex items-center gap-2">
-                <Volume2 className="w-4 h-4 text-blue-400" />
+                <Volume2 className={`w-4 h-4 ${theme.text}`} />
                 TTS Speed:
               </span>
               <select
                 data-testid="speed-select"
                 value={ttsSpeed}
                 onChange={(e) => setTtsSpeed(e.target.value)}
-                className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-sm text-slate-200 outline-none cursor-pointer focus:border-blue-500"
+                className={`bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 text-sm text-slate-200 outline-none cursor-pointer ${theme.focusBorder}`}
               >
                 <option value="0.5">Slow (0.5x)</option>
                 <option value="0.75">Custom (0.75x)</option>
@@ -150,7 +165,7 @@ export function StudyView({
                  style={{ backfaceVisibility: 'hidden' }}
                >
                  <div className="flex justify-between items-start w-full">
-                   <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-xs font-semibold uppercase tracking-wider">
+                   <span className={`px-3 py-1 ${theme.lightBg} ${theme.text} rounded-full text-xs font-semibold uppercase tracking-wider`}>
                      {studyDeck[safeStudyIndex] && getAimLabel(studyDeck[safeStudyIndex].difficulty)}
                    </span>
                    <div className="flex items-center gap-2">
@@ -165,88 +180,93 @@ export function StudyView({
                            toggleWordStarred(studyDeck[safeStudyIndex].id);
                          }
                        }}
-                       className="p-1 bg-transparent hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
+                       className="p-1 text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
                      >
-                       <Star
-                         className={`w-4 h-4 ${
-                           studyDeck[safeStudyIndex] && progress[studyDeck[safeStudyIndex].id]?.isStarred
-                             ? 'fill-amber-400 text-amber-400'
-                             : 'text-slate-500 hover:text-amber-400'
-                         }`}
-                       />
+                       <Star className={`w-5 h-5 ${studyDeck[safeStudyIndex] && progress[studyDeck[safeStudyIndex].id]?.isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
                      </button>
                    </div>
                  </div>
-                 <div className="text-center space-y-3 my-auto">
-                   <h3 className="text-4xl font-extrabold tracking-tight">
+
+                 <div className="text-center space-y-3">
+                   <h3 className="text-5xl font-black text-white tracking-tight break-all">
                      {studyDeck[safeStudyIndex]?.word}
                    </h3>
-                   <p className="text-slate-400 font-medium text-sm">
-                     {studyDeck[safeStudyIndex] && formatPOS(studyDeck[safeStudyIndex].partOfSpeech)} • [{studyDeck[safeStudyIndex]?.ipa}]
-                   </p>
+                   <div className="flex justify-center items-center gap-2">
+                     <span className="text-slate-400 font-medium italic text-sm">
+                       ({studyDeck[safeStudyIndex] && formatPOS(studyDeck[safeStudyIndex].partOfSpeech)})
+                     </span>
+                     <span className="text-indigo-400 font-mono text-sm">
+                       /{studyDeck[safeStudyIndex]?.ipa}/
+                     </span>
+                   </div>
                  </div>
-                 <div className="text-center text-xs text-slate-500 font-medium">
-                   Click card to flip definition
+
+                 <div className="flex justify-between items-center w-full">
+                   <button
+                     data-testid="speaker-btn"
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       if (studyDeck[safeStudyIndex]) {
+                         handleSpeak(studyDeck[safeStudyIndex].word);
+                       }
+                     }}
+                     className={`p-2 bg-slate-900 border border-slate-700 text-slate-350 rounded-xl hover:text-slate-100 cursor-pointer transition-colors flex items-center justify-center`}
+                   >
+                     <Volume2 className="w-5 h-5" />
+                   </button>
+                   <span className="text-xs text-slate-500 font-medium">Click to see definition</span>
                  </div>
                </div>
 
                {/* Back Face */}
                <div
                  data-testid="flashcard-back"
-                 className="absolute inset-0 bg-slate-800 border border-slate-700 p-8 rounded-3xl flex flex-col justify-between shadow-2xl backface-hidden"
-                 style={{
-                   backfaceVisibility: 'hidden',
-                   transform: 'rotateY(180deg)'
-                 }}
+                 className="absolute inset-0 bg-slate-800 border border-slate-700 p-6 rounded-3xl flex flex-col justify-between shadow-2xl backface-hidden"
+                 style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
                >
-                 <div className="flex justify-between items-start w-full">
-                   <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 rounded-full text-xs font-semibold uppercase tracking-wider">
-                     {studyDeck[safeStudyIndex]?.topic}
-                   </span>
-                   <div className="flex items-center gap-2">
-                     <button
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         if (studyDeck[safeStudyIndex]) {
-                           toggleWordStarred(studyDeck[safeStudyIndex].id);
-                         }
-                       }}
-                       className="p-1 bg-transparent hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
-                     >
-                       <Star
-                         className={`w-4 h-4 ${
-                           studyDeck[safeStudyIndex] && progress[studyDeck[safeStudyIndex].id]?.isStarred
-                             ? 'fill-amber-400 text-amber-400'
-                             : 'text-slate-500 hover:text-amber-400'
-                         }`}
-                       />
-                     </button>
-                     <button
-                       data-testid="speaker-btn"
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         handleSpeak(studyDeck[safeStudyIndex]?.word || '');
-                       }}
-                       className="p-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg cursor-pointer transition-colors"
-                     >
-                       <Volume2 className="w-4 h-4" />
-                     </button>
-                   </div>
+                 <div className="flex justify-between items-center w-full border-b border-slate-700/50 pb-2.5">
+                   <span className="text-xs text-slate-400 uppercase tracking-widest font-bold">Định nghĩa & Ví dụ</span>
+                   <button
+                     data-testid="star-back-btn"
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       if (studyDeck[safeStudyIndex]) {
+                         toggleWordStarred(studyDeck[safeStudyIndex].id);
+                       }
+                     }}
+                     className="text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
+                   >
+                     <Star className={`w-4 h-4 ${studyDeck[safeStudyIndex] && progress[studyDeck[safeStudyIndex].id]?.isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
+                   </button>
                  </div>
-                 <div className="space-y-3 my-auto w-full">
-                   <div>
-                     <div className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Definition</div>
-                     <p className="text-lg font-bold text-slate-100">{studyDeck[safeStudyIndex]?.definition}</p>
+
+                 <div className="space-y-4 text-center my-auto">
+                   <div className="space-y-1">
+                     <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Ý nghĩa tiếng Việt</p>
+                     <p className="text-lg font-bold text-slate-100 break-words leading-snug">
+                       {studyDeck[safeStudyIndex]?.definition}
+                     </p>
                    </div>
-                   <div className="border-t border-slate-700/50 pt-2">
-                     <div className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Example Sentence</div>
-                     <p className="text-xs italic text-slate-200 mt-0.5">"{studyDeck[safeStudyIndex]?.example}"</p>
-                     <p className="text-xs text-slate-400 mt-0.5">{studyDeck[safeStudyIndex]?.exampleTranslation}</p>
-                   </div>
+
+                   {studyDeck[safeStudyIndex]?.example && (
+                     <div className="bg-slate-900/35 border border-slate-700/50 p-3 rounded-2xl text-left max-w-sm mx-auto space-y-1">
+                       <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Ví dụ thực tế</p>
+                       <p className="text-xs text-slate-200 font-semibold italic leading-relaxed break-words">
+                         "{studyDeck[safeStudyIndex]?.example}"
+                       </p>
+                       {studyDeck[safeStudyIndex]?.exampleTranslation && (
+                         <p className="text-[11px] text-indigo-300/80 leading-normal break-words">
+                           {studyDeck[safeStudyIndex]?.exampleTranslation}
+                         </p>
+                       )}
+                     </div>
+                   )}
+
+                   {/* Synonyms Display */}
                    {studyDeck[safeStudyIndex]?.synonyms && studyDeck[safeStudyIndex]!.synonyms!.length > 0 && (
-                     <div className="border-t border-slate-700/50 pt-2">
-                       <div className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Từ đồng nghĩa (Synonyms)</div>
-                       <div className="flex flex-wrap gap-1 mt-1">
+                     <div className="space-y-1 text-left max-w-sm mx-auto">
+                       <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Từ đồng nghĩa</p>
+                       <div className="flex flex-wrap gap-1.5 mt-0.5">
                          {studyDeck[safeStudyIndex]!.synonyms!.map((syn, sIdx) => (
                            <span key={sIdx} className="px-1.5 py-0.5 bg-slate-900 border border-slate-700 text-slate-300 text-[10px] font-medium rounded-md">
                              {syn}
@@ -281,7 +301,7 @@ export function StudyView({
             <button
               data-testid="next-btn"
               onClick={handleNextStudy}
-              className="py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all"
+              className={`py-3 px-4 text-white font-semibold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all ${theme.bg} ${theme.hoverBg}`}
             >
               Next Card
               <ArrowRight className="w-4 h-4" />

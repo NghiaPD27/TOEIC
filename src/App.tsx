@@ -4,7 +4,7 @@ import { GraduationCap, AlertCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import useVocabulary from './hooks/useVocabulary';
 import type { TestQuestion, TestAnswer, GrammarProgress } from './types';
-import { isTestEnv } from './utils/helpers';
+import { isTestEnv, getThemeAccent } from './utils/helpers';
 
 // Import split view components
 import { DashboardView } from './components/DashboardView';
@@ -14,6 +14,7 @@ import { LibraryView } from './components/LibraryView';
 import { GrammarView } from './components/GrammarView';
 import { GrammarTopicDetailViewWrapper } from './components/GrammarTopicDetailView';
 import { PronunciationView } from './components/PronunciationView';
+import { GameView } from './components/GameView';
 
 function AppContent() {
   const {
@@ -32,6 +33,27 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Accent color state
+  const [accentColor, setAccentColor] = useState<'blue' | 'purple' | 'emerald' | 'amber'>(() => {
+    try {
+      return (localStorage.getItem('toeic-theme-accent') as 'blue' | 'purple' | 'emerald' | 'amber') || 'blue';
+    } catch {
+      return 'blue';
+    }
+  });
+
+  const theme = useMemo(() => getThemeAccent(accentColor), [accentColor]);
+
+  // Accent switcher method
+  const handleAccentChange = (color: 'blue' | 'purple' | 'emerald' | 'amber') => {
+    try {
+      localStorage.setItem('toeic-theme-accent', color);
+    } catch (e) {
+      console.warn("Storage quota full, color changes will not persist", e);
+    }
+    setAccentColor(color);
+  };
+
   // Compute activeTab from path using useMemo
   const activeTab = useMemo(() => {
     const path = location.pathname;
@@ -41,6 +63,7 @@ function AppContent() {
     if (path.startsWith('/library')) return 'library';
     if (path.startsWith('/grammar')) return 'grammar';
     if (path.startsWith('/pronunciation')) return 'pronunciation';
+    if (path.startsWith('/game')) return 'game';
     return 'dashboard';
   }, [location.pathname]);
 
@@ -94,7 +117,7 @@ function AppContent() {
   }, [ttsSpeed]);
 
   // Tab switching with confirmation warning
-  const handleTabChange = (newTab: 'dashboard' | 'study' | 'test' | 'library' | 'grammar' | 'pronunciation') => {
+  const handleTabChange = (newTab: 'dashboard' | 'study' | 'test' | 'library' | 'grammar' | 'pronunciation' | 'game') => {
     // Cancel any active speech synthesis immediately when tab switch is requested
     if (typeof window !== 'undefined' && window.speechSynthesis && typeof window.speechSynthesis.cancel === 'function') {
       window.speechSynthesis.cancel();
@@ -118,7 +141,8 @@ function AppContent() {
       test: '/test',
       library: '/library',
       grammar: '/grammar',
-      pronunciation: '/pronunciation'
+      pronunciation: '/pronunciation',
+      game: '/game'
     };
     navigate(pathMap[newTab]);
   };
@@ -357,15 +381,39 @@ function AppContent() {
           </div>
         </div>
 
+        {/* Accent Color Switcher */}
+        <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800" data-testid="theme-customizer">
+          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mr-1.5">Accent:</span>
+          {(['blue', 'purple', 'emerald', 'amber'] as const).map((color) => {
+            const colors = {
+              blue: 'bg-blue-500 hover:bg-blue-400 border-blue-400/50',
+              purple: 'bg-purple-500 hover:bg-purple-400 border-purple-400/50',
+              emerald: 'bg-emerald-500 hover:bg-emerald-400 border-emerald-400/50',
+              amber: 'bg-amber-500 hover:bg-amber-400 border-amber-400/50'
+            };
+            return (
+              <button
+                key={color}
+                data-testid={`theme-btn-${color}`}
+                onClick={() => handleAccentChange(color)}
+                className={`w-3.5 h-3.5 rounded-full border transition-all cursor-pointer ${colors[color]} ${
+                  accentColor === color ? 'scale-125 ring-2 ring-slate-100 ring-offset-2 ring-offset-slate-950' : 'opacity-80'
+                }`}
+                title={`Màu ${color}`}
+              />
+            );
+          })}
+        </div>
+
         {/* Tab Navigation buttons */}
-        <nav className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <nav className="flex flex-wrap items-center bg-slate-950 p-1 rounded-xl border border-slate-800 gap-1 sm:gap-0">
           <button
             data-testid="tab-dashboard"
             onClick={() => handleTabChange('dashboard')}
             disabled={showAddWordModal || showResetConfirm}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'dashboard'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? `${theme.bg} text-white shadow-md`
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -377,7 +425,7 @@ function AppContent() {
             disabled={showAddWordModal || showResetConfirm}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'study'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? `${theme.bg} text-white shadow-md`
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -389,11 +437,23 @@ function AppContent() {
             disabled={showAddWordModal || showResetConfirm}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'test'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? `${theme.bg} text-white shadow-md`
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Test
+          </button>
+          <button
+            data-testid="tab-game"
+            onClick={() => handleTabChange('game')}
+            disabled={showAddWordModal || showResetConfirm}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+              activeTab === 'game'
+                ? `${theme.bg} text-white shadow-md`
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Game
           </button>
           <button
             data-testid="tab-library"
@@ -401,7 +461,7 @@ function AppContent() {
             disabled={showAddWordModal || showResetConfirm}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'library'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? `${theme.bg} text-white shadow-md`
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -413,7 +473,7 @@ function AppContent() {
             disabled={showAddWordModal || showResetConfirm}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'grammar'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? `${theme.bg} text-white shadow-md`
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -425,7 +485,7 @@ function AppContent() {
             disabled={showAddWordModal || showResetConfirm}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'pronunciation'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? `${theme.bg} text-white shadow-md`
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -460,6 +520,7 @@ function AppContent() {
               setGrammarProgress={setGrammarProgress}
               navigate={navigate}
               location={location}
+              theme={theme}
             />
           } />
 
@@ -481,6 +542,7 @@ function AppContent() {
               handleNextStudy={handleNextStudy}
               handleSpeak={handleSpeak}
               setShowResetConfirm={setShowResetConfirm}
+              theme={theme}
             />
           } />
 
@@ -503,6 +565,14 @@ function AppContent() {
               startTest={startTest}
               handleSubmitAnswer={handleSubmitAnswer}
               handleSpeak={handleSpeak}
+              theme={theme}
+            />
+          } />
+
+          <Route path="/game" element={
+            <GameView
+              words={words}
+              theme={theme}
             />
           } />
 
@@ -522,6 +592,7 @@ function AppContent() {
               setStarredOnly={setStarredOnly}
               location={location}
               navigate={navigate}
+              theme={theme}
             />
           } />
 
@@ -529,6 +600,7 @@ function AppContent() {
             <GrammarView
               grammarProgress={grammarProgress}
               navigate={navigate}
+              theme={theme}
             />
           } />
 
@@ -537,6 +609,7 @@ function AppContent() {
               grammarProgress={grammarProgress}
               setGrammarProgress={setGrammarProgress}
               setStorageError={setStorageError}
+              theme={theme}
             />
           } />
 
