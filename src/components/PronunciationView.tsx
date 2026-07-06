@@ -19,6 +19,17 @@ export function PronunciationView() {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'en-US';
+
+      if (typeof window.speechSynthesis.getVoices === 'function') {
+        const voices = window.speechSynthesis.getVoices();
+        const enVoice = voices.find(v => v.lang.toLowerCase() === 'en-us') ||
+                        voices.find(v => v.lang.toLowerCase().includes('en-us')) ||
+                        voices.find(v => v.lang.toLowerCase().startsWith('en'));
+        if (enVoice) {
+          utterance.voice = enVoice;
+        }
+      }
+
       window.speechSynthesis.speak(utterance);
     }
   };

@@ -111,7 +111,19 @@ function AppContent() {
     if (typeof window !== 'undefined' && window.speechSynthesis && typeof window.speechSynthesis.cancel === 'function' && typeof window.speechSynthesis.speak === 'function') {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
       utterance.rate = Number(ttsSpeed);
+
+      if (typeof window.speechSynthesis.getVoices === 'function') {
+        const voices = window.speechSynthesis.getVoices();
+        const enVoice = voices.find(v => v.lang.toLowerCase() === 'en-us') ||
+                        voices.find(v => v.lang.toLowerCase().includes('en-us')) ||
+                        voices.find(v => v.lang.toLowerCase().startsWith('en'));
+        if (enVoice) {
+          utterance.voice = enVoice;
+        }
+      }
+
       window.speechSynthesis.speak(utterance);
     }
   }, [ttsSpeed]);

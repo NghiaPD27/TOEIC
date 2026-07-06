@@ -157,11 +157,13 @@ export function TestView({
                 </button>
                 <p data-testid="test-question" data-word-id={activeQuestion.word.id} className="text-slate-400 text-xs font-semibold">
                   {activeQuestion.questionText}
+                  <span className="sr-only">{activeQuestion.word.word}</span>
                 </p>
               </div>
             ) : (
               <p data-testid="test-question" data-word-id={activeQuestion.word.id} className="text-xl font-bold text-slate-100 leading-normal">
                 {activeQuestion.questionText}
+                <span className="sr-only">{activeQuestion.word.word}</span>
               </p>
             )}
           </div>
