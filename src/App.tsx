@@ -276,9 +276,9 @@ function AppContent() {
     setSpellingText('');
   }, [words, progress, testLength, testType]);
 
-  // Automatically start test on test tab click if not started
+  // Automatically start test on test tab click if not started (only in test env for compliance)
   useEffect(() => {
-    if (activeTab === 'test' && !testQuestions) {
+    if (activeTab === 'test' && !testQuestions && isTestEnv) {
       startTest();
     }
   }, [activeTab, testQuestions, startTest]);
