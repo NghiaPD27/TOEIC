@@ -626,7 +626,7 @@ function AppContent() {
           } />
 
           <Route path="/pronunciation" element={
-            <PronunciationView />
+            <PronunciationView theme={theme} />
           } />
 
           <Route path="*" element={<Navigate to="/" replace />} />

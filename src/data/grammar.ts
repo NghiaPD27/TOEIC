@@ -586,5 +586,475 @@ export const grammarTopics: GrammarTopic[] = [
         explanation: "'despite' is correct because 'the economic downturn' is a noun phrase, requiring a preposition to express contrast. 'although' and 'while' are conjunctions that must introduce a clause."
       }
     ]
+  },
+  {
+    id: "present-perfect-aspect",
+    title: "8. Present Perfect: Simple & Continuous",
+    description: "Master the choice between Present Perfect Simple (focus on result) and Continuous (focus on duration/process) in Destination B2.",
+    theory: `**I. QUY TẮC NGỮ PHÁP CHI TIẾT (Detailed Grammar Rules)**
+
+1. Hiện tại hoàn thành đơn (Present Perfect Simple):
+- Nhấn mạnh vào kết quả của hành động đã hoàn thành tính đến thời điểm hiện tại (focuses on result/completion).
+- Công thức: **S + have/has + V3/ed**
+- Ví dụ: "I have written five reports today." (Nhấn mạnh kết quả là 5 báo cáo).
+
+2. Hiện tại hoàn thành tiếp diễn (Present Perfect Continuous):
+- Nhấn mạnh vào quá trình hoặc khoảng thời gian kéo dài liên tục của hành động bắt đầu ở quá khứ và vẫn tiếp diễn ở hiện tại (focuses on duration/activity).
+- Công thức: **S + have/has + been + V-ing**
+- Ví dụ: "I have been writing reports since morning." (Nhấn mạnh việc viết báo cáo diễn ra liên tục từ sáng đến nay).
+
+**II. CÔNG THỨC & DẤU HIỆU NHẬN BIẾT (Formulas & Time Markers)**
+
+| Aspect | Formula | Key Usage | Common Time Markers |
+|---|---|---|---|
+| Simple | S + have/has + V3/ed | Nhấn mạnh kết quả, số lần, số lượng | already, yet, ever, never, so far, just, three times |
+| Continuous | S + have/has + been + V-ing | Nhấn mạnh hành động liên tục, thời lượng | for, since, all day, how long, recently |`,
+    toeicTips: `**III. CÁC LỖI THƯỜNG GẶP TRONG BÀI THI (Common Pitfalls)**
+
+- **Động từ trạng thái (Stative Verbs)**: Các động từ chỉ cảm xúc, nhận thức (know, believe, belong, like, own...) không bao giờ được chia ở thì tiếp diễn. Phải dùng thì hoàn thành đơn.
+  - Sai: "I have been knowing him for years."
+  - Đúng: "I have known him for years."
+- **Nhầm lẫn giữa hành động tạm thời và lâu dài**:
+  - Dùng continuous cho hành động tạm thời: "I have been staying at a hotel."
+  - Dùng simple cho trạng thái lâu dài: "I have lived in Hanoi all my life."`,
+    questions: [
+      {
+        id: "pp_q1",
+        questionText: "The company _______ its software systems three times this year.",
+        options: ["has updated", "has been updating", "is updating", "updates"],
+        correctAnswer: "has updated",
+        explanation: "'has updated' is correct because we are focusing on the quantity/number of times an action occurred ('three times this year'), which requires the present perfect simple."
+      },
+      {
+        id: "pp_q2",
+        questionText: "I _______ him since we worked together on the joint venture project.",
+        options: ["have been knowing", "have known", "am knowing", "know"],
+        correctAnswer: "have known",
+        explanation: "'have known' is correct because 'know' is a stative verb and cannot be used in continuous tenses. Present perfect simple is required with 'since'."
+      },
+      {
+        id: "pp_q3",
+        questionText: "She is exhausted because she _______ all day to prepare for the auditor's visit.",
+        options: ["has been working", "has worked", "works", "is working"],
+        correctAnswer: "has been working",
+        explanation: "'has been working' is correct because it emphasizes the continuous duration of the activity ('all day') that leads to the present state of exhaustion."
+      },
+      {
+        id: "pp_q4",
+        questionText: "They _______ the negotiation table yet, so the contract remains unsigned.",
+        options: ["haven't reached", "haven't been reaching", "don't reach", "won't reach"],
+        correctAnswer: "haven't reached",
+        explanation: "'haven't reached' is correct because the word 'yet' triggers the present perfect simple. The verb 'reach' is also a state/achievement verb here rather than a continuous activity."
+      },
+      {
+        id: "pp_q5",
+        questionText: "How long _______ for the marketing agency before they promoted you?",
+        options: ["had you been working", "have you been working", "do you work", "are you working"],
+        correctAnswer: "had you been working",
+        explanation: "'had you been working' is correct because it asks about the duration of work leading up to a specific past event ('before they promoted you'), requiring past perfect continuous."
+      }
+    ]
+  },
+  {
+    id: "future-time",
+    title: "9. Future Time",
+    description: "Understand the subtle differences between will, be going to, present continuous, and present simple when expressing future time.",
+    theory: `**I. QUY TẮC NGỮ PHÁP CHI TIẾT (Detailed Grammar Rules)**
+
+1. Will (Tương lai đơn):
+- Quyết định tức thời ngay lúc nói (spontaneous decision).
+- Dự đoán tương lai không có căn cứ rõ ràng (prediction without evidence).
+- Lời hứa, lời đề xuất (promises, offers).
+
+2. Be going to (Tương lai gần):
+- Dự đoán tương lai dựa trên bằng chứng thực tế ở hiện tại (prediction based on current evidence).
+- Kế hoạch, dự định đã được chuẩn bị từ trước (intentions/plans).
+
+3. Present Continuous (Hiện tại tiếp diễn dùng cho tương lai):
+- Diễn tả lịch trình cá nhân đã được lên lịch, sắp xếp chắc chắn (fixed personal arrangements).
+
+4. Present Simple (Hiện tại đơn dùng cho tương lai):
+- Diễn tả thời khóa biểu, lịch trình tàu xe, lịch họp cố định của tập thể/công cộng (fixed timetables/schedules).`,
+    toeicTips: `**III. CÁC BẪY THƯỜNG GẶP TRONG BÀI THI (Common Pitfalls)**
+
+- **Bẫy trong mệnh đề trạng ngữ chỉ thời gian**:
+  - Trong các mệnh đề thời gian bắt đầu bằng *when, as soon as, once, until, by the time, before, after*, chúng ta **không** dùng "will". Phải dùng Hiện tại đơn (hoặc Hiện tại hoàn thành) để diễn tả tương lai.
+  - Sai: "We will sign the contract as soon as the manager will arrive."
+  - Đúng: "We will sign the contract as soon as the manager arrives."
+- **Bẫy thời khóa biểu**: Thường nhầm lẫn giữa lịch công cộng (Present Simple) và lịch cá nhân (Present Continuous).`,
+    questions: [
+      {
+        id: "ft_q1",
+        questionText: "The international flight to Frankfurt _______ at 9:00 PM tomorrow.",
+        options: ["departs", "will depart", "is departing", "departed"],
+        correctAnswer: "departs",
+        explanation: "'departs' is correct because the flight schedule is a public fixed timetable, which is traditionally expressed using the present simple tense."
+      },
+      {
+        id: "ft_q2",
+        questionText: "As soon as the shipping department _______ the package, we will email you the tracking number.",
+        options: ["sends", "will send", "is sending", "would send"],
+        correctAnswer: "sends",
+        explanation: "'sends' is correct because the temporal clause starting with 'As soon as' cannot take 'will'. The present simple tense must be used instead to refer to future time."
+      },
+      {
+        id: "ft_q3",
+        questionText: "Look at those dark clouds! It _______ rain heavily soon.",
+        options: ["is going to", "will", "shall", "is to"],
+        correctAnswer: "is going to",
+        explanation: "'is going to' is correct because the presence of 'dark clouds' provides immediate physical evidence in the present, indicating a prediction with evidence."
+      },
+      {
+        id: "ft_q4",
+        questionText: "We _______ a press conference tomorrow afternoon to address the merger rumors.",
+        options: ["are holding", "hold", "will have held", "held"],
+        correctAnswer: "are holding",
+        explanation: "'are holding' is correct because holding a press conference is a pre-arranged, fixed arrangement scheduled for a specific future time."
+      },
+      {
+        id: "ft_q5",
+        questionText: "I think our company _______ more market share next year.",
+        options: ["will gain", "gains", "is gaining", "will have gained"],
+        correctAnswer: "will gain",
+        explanation: "'will gain' is correct because predictions based on personal thoughts/opinions ('I think') without strong present evidence use 'will'."
+      }
+    ]
+  },
+  {
+    id: "modals",
+    title: "10. Modals: Ability, Obligation, Advice, Possibility",
+    description: "Learn how to use modals and semi-modals to express various degrees of obligation, permission, and logical deduction.",
+    theory: `**I. QUY TẮC NGỮ PHÁP CHI TIẾT (Detailed Grammar Rules)**
+
+1. Khả năng (Ability):
+- **Can / Could**: Khả năng ở hiện tại / quá khứ.
+- **Be able to**: Có thể dùng ở mọi thì (will be able to, have been able to).
+
+2. Nghĩa vụ và Bắt buộc (Obligation / Necessity):
+- **Must**: Bắt buộc chủ quan (từ phía người nói) hoặc luật lệ.
+- **Have to**: Bắt buộc khách quan (do nội quy, hoàn cảnh ép buộc).
+- **Mustn't**: Cấm đoán làm gì.
+- **Don't have to / Needn't**: Không cần thiết phải làm gì.
+
+3. Khuyên bảo (Advice):
+- **Should / Ought to / Had better**: Nên làm gì. "Had better" mang sắc thái cảnh báo có hậu quả xấu nếu không làm.
+
+4. Khả năng xảy ra / Suy đoán (Possibility / Deduction):
+- **Must have + V3/ed**: Suy luận logic chắc chắn xảy ra trong quá khứ.
+- **Can't have + V3/ed**: Suy luận chắc chắn không thể xảy ra trong quá khứ.
+- **Might / May / Could have + V3/ed**: Có thể đã xảy ra trong quá khứ nhưng không chắc chắn.`,
+    toeicTips: `**III. CÁC BẪY THƯỜNG GẶP TRONG BÀI THI (Common Pitfalls)**
+
+- **Bẫy Mustn't vs Don't have to**:
+  - *Mustn't*: Có nghĩa là CẤM (Forbidden).
+  - *Don't have to*: Có nghĩa là KHÔNG CẦN THIẾT (Optional).
+  - Ví dụ trong TOEIC: "You don't have to pay for parking; it is free." (Không bắt buộc phải trả).
+- **Bẫy Suy luận quá khứ (Past Modal Deductions)**: Thường gài cấu trúc hoàn thành như 'should have V3' (lẽ ra nên làm nhưng đã không làm) hoặc 'must have V3' (chắc hẳn đã làm).`,
+    questions: [
+      {
+        id: "md_q1",
+        questionText: "You _______ submit the financial reports today because the deadline has been extended to next Friday.",
+        options: ["mustn't", "don't have to", "shouldn't", "ought not to"],
+        correctAnswer: "don't have to",
+        explanation: "'don't have to' is correct because the extension of the deadline means submitting the report today is no longer necessary/optional, not forbidden ('mustn't')."
+      },
+      {
+        id: "md_q2",
+        questionText: "The director _______ left the office already; his car is still in the parking lot.",
+        options: ["must have", "can't have", "should have", "might have"],
+        correctAnswer: "can't have",
+        explanation: "'can't have' is correct because the evidence ('his car is still in the parking lot') allows a strong logical deduction that it is impossible that he has left."
+      },
+      {
+        id: "md_q3",
+        questionText: "Employees _______ wear safety goggles when entering the production facility.",
+        options: ["must", "may", "ought", "could"],
+        correctAnswer: "must",
+        explanation: "'must' is correct because wearing safety gear is a strict rule/obligation in factories. 'ought' requires 'to'."
+      },
+      {
+        id: "md_q4",
+        questionText: "The project manager _______ notified the team earlier about the changes in requirements.",
+        options: ["should have", "must have", "could", "would"],
+        correctAnswer: "should have",
+        explanation: "'should have' is correct because it implies a past criticism: the manager had the obligation to notify them earlier, but failed to do so."
+      },
+      {
+        id: "md_q5",
+        questionText: "In order to apply for this executive position, you _______ speak fluent English and Mandarin.",
+        options: ["must be able to", "can", "could", "may"],
+        correctAnswer: "must be able to",
+        explanation: "'must be able to' combines obligation ('must') and ability ('be able to') which fits the job requirement context perfectly."
+      }
+    ]
+  },
+  {
+    id: "reported-speech",
+    title: "11. Indirect Speech & Reporting Verbs",
+    description: "Understand the rules of backshifting tenses, changes in pronouns/time markers, and the use of special reporting verbs in Destination B2.",
+    theory: `**I. QUY TẮC NGỮ PHÁP CHI TIẾT (Detailed Grammar Rules)**
+
+1. Lùi thì (Backshifting):
+Khi động từ tường thuật ở quá khứ (said, told, etc.), tenses trong câu trực tiếp lùi 1 thì:
+- Simple Present -> Simple Past
+- Present Continuous -> Past Continuous
+- Simple Past / Present Perfect -> Past Perfect
+- Will -> Would / Can -> Could
+
+2. Thay đổi trạng từ chỉ thời gian & nơi chốn:
+- today -> that day
+- yesterday -> the day before / the previous day
+- tomorrow -> the next day / the following day
+- here -> there / this -> that
+
+3. Động từ tường thuật đặc biệt (Reporting Verbs):
+- **V + to-V**: agree, offer, promise, refuse, threaten
+- **V + sb + to-V**: advise, ask, encourage, invite, order, remind, warn
+- **V + V-ing**: admit, deny, recommend, suggest
+- **V + prep + V-ing / V + sb + prep + V-ing**: apologize for, congratulate sb on, accuse sb of`,
+    toeicTips: `**III. CÁC BẪY THƯỜNG GẶP TRONG BÀI THI (Common Pitfalls)**
+
+- **Bẫy Say vs Tell**:
+  - *Say* + (to sb) + clause: "She said to me that..."
+  - *Tell* + sb + clause: "She told me that..."
+  - Không được dùng: "She told that..." hoặc "She said me that..."
+- **Bẫy Thức giả định với Suggest/Recommend**:
+  - S + suggest + that + S + (should) + V-bare.
+  - Ví dụ: "The auditor suggested that the team review the ledger." (không dùng 'reviews' hay 'reviewed').`,
+    questions: [
+      {
+        id: "rs_q1",
+        questionText: "The sales representative told the client _______ the package would arrive the next day.",
+        options: ["that", "said", "told", "to"],
+        correctAnswer: "that",
+        explanation: "'that' is correct as it introduces the reported clause after the indirect object 'the client' ('told the client that...'). 'said' or 'told' cannot follow 'told the client'."
+      },
+      {
+        id: "rs_q2",
+        questionText: "The executive board recommended _______ the marketing budget for the next fiscal year.",
+        options: ["to increase", "increasing", "increase", "increased"],
+        correctAnswer: "increasing",
+        explanation: "'increasing' is correct because the reporting verb 'recommend' is followed directly by a gerund (V-ing) when there is no 'that'-clause."
+      },
+      {
+        id: "rs_q3",
+        questionText: "The CEO suggested that the planning committee _______ the proposal immediately.",
+        options: ["review", "reviews", "reviewed", "should reviewed"],
+        correctAnswer: "review",
+        explanation: "'review' is correct because 'suggest that' triggers a subjunctive clause, which requires the base form of the verb (V-bare), with or without 'should'."
+      },
+      {
+        id: "rs_q4",
+        questionText: "The supervisor warned the technicians _______ touch the high voltage wiring without gloves.",
+        options: ["not to", "to not", "do not", "should not"],
+        correctAnswer: "not to",
+        explanation: "'not to' is correct because the structure for a negative warning is 'warn sb not to V'. 'to not' is split infinitive and less standard."
+      },
+      {
+        id: "rs_q5",
+        questionText: "The security officer asked me if I _______ any suspicious activity near the vault.",
+        options: ["have seen", "had seen", "see", "am seeing"],
+        correctAnswer: "had seen",
+        explanation: "'had seen' is correct because the reporting verb 'asked' is in the past, meaning the present perfect/simple past of the original question ('Did you see/Have you seen...?') must backshift to the past perfect."
+      }
+    ]
+  },
+  {
+    id: "adjectives-adverbs",
+    title: "12. Adjectives & Adverbs, Comparison",
+    description: "Learn how to use adjectives and adverbs correctly and master all comparative and superlative structures in Destination B2.",
+    theory: `**I. QUY TẮC NGỮ PHÁP CHI TIẾT (Detailed Grammar Rules)**
+
+1. Adjectives vs. Adverbs (Tính từ và Trạng từ):
+- **Tính từ (Adjectives)**: Bổ nghĩa cho danh từ, đứng trước danh từ hoặc đứng sau các liên động từ (linking verbs: be, look, seem, feel, become).
+- **Trạng từ (Adverbs)**: Bổ nghĩa cho động từ thường, tính từ khác hoặc cả câu.
+
+2. Cấu trúc so sánh (Comparison):
+- **So sánh bằng**: S + V + as + adj/adv + as + N/pronoun.
+- **So sánh hơn**:
+  - Tính từ/Trạng từ ngắn: adj/adv-ed + than.
+  - Tính từ/Trạng từ dài: more + adj/adv + than.
+- **So sánh nhất**:
+  - Tính từ/Trạng từ ngắn: the + adj/adv-est.
+  - Tính từ/Trạng từ dài: the most + adj/adv.
+- **So sánh kép**: The + comparative + S + V, the + comparative + S + V (Càng... thì càng...).`,
+    toeicTips: `**III. CÁC BẪY THƯỜNG GẶP TRONG BÀI THI (Common Pitfalls)**
+
+- **Bẫy trạng từ đứng giữa Trợ động từ và Động từ chính**:
+  - TOEIC cực kỳ thích cấu trúc: **S + trợ động từ / be + ADV + V / V-ed / Adj**.
+  - Ví dụ: "The report is *accurately* prepared." (Rất nhiều người chọn tính từ 'accurate' vì thấy động từ 'is', nhưng thực tế từ cần bổ nghĩa là động từ phân từ 'prepared').
+- **Bẫy các trạng từ đặc biệt**: 'hardly' không phải là trạng từ của 'hard' (hardly nghĩa là hầu như không, hard vừa là tính từ vừa là trạng từ). Tương tự với 'late' (trễ) và 'lately' (gần đây).`,
+    questions: [
+      {
+        id: "aa_q1",
+        questionText: "The new marketing strategy was _______ received by the regional directors.",
+        options: ["enthusiastic", "enthusiastically", "enthusiasm", "enthusiast"],
+        correctAnswer: "enthusiastically",
+        explanation: "'enthusiastically' is correct because it is an adverb modifying the participle adjective/verb 'received'. Adverbs always modify verbs, adjectives, or other adverbs."
+      },
+      {
+        id: "aa_q2",
+        questionText: "The assistant worked _______ to complete the slides before the presentation began.",
+        options: ["hard", "hardly", "harder than", "hardest"],
+        correctAnswer: "hard",
+        explanation: "'hard' is correct as an adverb meaning 'with energy and effort'. 'hardly' means 'scarcely/almost not' which contradicts the positive effort context."
+      },
+      {
+        id: "aa_q3",
+        questionText: "The _______ we submit the proposal, the better chance we have of securing the client's contract.",
+        options: ["sooner", "soonest", "more soon", "as soon as"],
+        correctAnswer: "sooner",
+        explanation: "'sooner' is correct because this is a double comparative structure ('The sooner..., the better...')."
+      },
+      {
+        id: "aa_q4",
+        questionText: "The training session was _______ longer than we had originally expected.",
+        options: ["much", "more", "very", "most"],
+        correctAnswer: "much",
+        explanation: "'much' is correct because it is a modifier used to intensify comparative adjectives/adverbs ('much longer'). 'very' cannot modify comparative forms directly."
+      },
+      {
+        id: "aa_q5",
+        questionText: "Mr. Davis looked _______ about the sales figures during the executive board meeting.",
+        options: ["concerned", "concernedly", "concern", "concerning"],
+        correctAnswer: "concerned",
+        explanation: "'concerned' is correct because 'look' is a linking verb here meaning 'seem', which must be followed by an adjective to describe the subject."
+      }
+    ]
+  },
+  {
+    id: "pronouns-articles",
+    title: "13. Pronouns, Determiners, Articles",
+    description: "Learn how to master English pronouns, quantity determiners (many, much, few, little), and definite/indefinite articles.",
+    theory: `**I. QUY TẮC NGỮ PHÁP CHI TIẾT (Detailed Grammar Rules)**
+
+1. Pronouns (Đại từ):
+- Đại từ nhân xưng chủ ngữ (I, you, he, she, it, we, they) và tân ngữ (me, you, him, her, it, us, them).
+- Tính từ sở hữu (my, your, his, her, its, our, their) + Danh từ.
+- Đại từ sở hữu (mine, yours, his, hers, ours, theirs) - tự thân thay thế cho "tính từ sở hữu + danh từ".
+- Đại từ phản thân (myself, yourself, himself, herself, itself, ourselves, themselves).
+
+2. Determiners (Từ chỉ định lượng):
+- **Many / Few / A few**: Đi với danh từ đếm được số nhiều.
+- **Much / Little / A little**: Đi với danh từ không đếm được.
+- **A few / A little**: Mang nghĩa tích cực (một chút, đủ dùng).
+- **Few / Little**: Mang nghĩa tiêu cực (hầu như không có, không đủ).
+
+3. Articles (Mạo từ):
+- **A / An**: Dùng cho danh từ đếm được số ít, chưa xác định.
+- **The**: Dùng cho danh từ đã xác định cụ thể (người nghe và người nói đều biết), hoặc duy nhất.
+- **Không dùng mạo từ**: Cho danh từ số nhiều nói chung, danh từ không đếm được nói chung.`,
+    toeicTips: `**III. CÁC LỖI THƯỜNG GẶP TRONG BÀI THI (Common Pitfalls)**
+
+- **Bẫy Đại từ phản thân (Reflexive Pronouns)**:
+  - Cấu trúc **by + đại từ phản thân** (by himself / by myself) mang nghĩa tự mình làm (alone/without help).
+  - Vị trí cuối câu hoàn chỉnh: "S + V + O + reflexive pronoun" để nhấn mạnh chủ ngữ tự làm việc đó.
+- **Nhầm lẫn giữa Little/Few và A little/A few**: 
+  - Hãy nhớ: **A little/A few** mang nghĩa tích cực (vẫn còn một ít, đủ dùng).
+  - **Little/Few** mang nghĩa tiêu cực (quá ít, không đủ).`,
+    questions: [
+      {
+        id: "pa_q1",
+        questionText: "The representative completed the entire presentation all by _______.",
+        options: ["him", "himself", "his", "he"],
+        correctAnswer: "himself",
+        explanation: "'himself' is correct because the phrase 'by himself' is an idiom meaning 'alone' or 'without help', which matches the context."
+      },
+      {
+        id: "pa_q2",
+        questionText: "We have _______ time left before the meeting starts, so we must hurry up.",
+        options: ["little", "a little", "few", "a few"],
+        correctAnswer: "little",
+        explanation: "'little' is correct because 'time' is uncountable and the context ('we must hurry up') indicates a negative shortage of time (not enough time)."
+      },
+      {
+        id: "pa_q3",
+        questionText: "The manager has already approved the sales budget, but we are still waiting for _______.",
+        options: ["their", "theirs", "them", "they"],
+        correctAnswer: "theirs",
+        explanation: "'theirs' is correct as a possessive pronoun representing 'their budget' (We are waiting for theirs = their budget)."
+      },
+      {
+        id: "pa_q4",
+        questionText: "Dr. Evans is _______ authority on international trade law.",
+        options: ["an", "a", "the", "no article"],
+        correctAnswer: "an",
+        explanation: "'an' is correct because 'authority' begins with a vowel sound and is a singular countable noun referring to a general profession/role here."
+      },
+      {
+        id: "pa_q5",
+        questionText: "Although there were _______ complaints about the service, most clients were highly satisfied.",
+        options: ["a few", "few", "little", "a little"],
+        correctAnswer: "few",
+        explanation: "'few' is correct because 'complaints' is a plural countable noun. The contrast word 'Although' and the clause 'most clients were satisfied' indicate there were very few (negligible) complaints."
+      }
+    ]
+  },
+  {
+    id: "inversion-cleft",
+    title: "14. Inversion & Cleft Sentences",
+    description: "Learn how to use inversion for emphasis (negative adverbs, conditionals) and cleft sentences to focus on specific parts of a statement.",
+    theory: `**I. QUY TẮC NGỮ PHÁP CHI TIẾT (Detailed Grammar Rules)**
+
+1. Đảo ngữ (Inversion):
+Đưa trợ động từ lên trước chủ ngữ. Thường dùng sau các trạng từ phủ định hoặc giới hạn:
+- **Trạng từ phủ định**: Never, Rarely, Seldom, Hardly, Scarcely, Barely, Little.
+  - Cấu trúc: **Negative adverb + Auxiliary verb + S + V**
+  - Ví dụ: "Hardly had I arrived when the phone rang."
+- **Cấu trúc Only**: Only by, Only when, Only after, Not only.
+  - Ví dụ: "Not only did he arrive late, but he also forgot his documents."
+- **Đảo ngữ câu điều kiện**:
+  - Loại 1: **Should + S + V-bare** (Should you need help -> If you need help).
+  - Loại 2: **Were + S + to-V / Were + S** (Were I you -> If I were you).
+  - Loại 3: **Had + S + V3/ed** (Had we known -> If we had known).
+
+2. Câu chẻ (Cleft Sentences):
+Dùng để nhấn mạnh một thành phần cụ thể (chủ ngữ, tân ngữ, trạng ngữ).
+- Cấu trúc: **It is / was + Emphasized part + that / who + S + V**
+- Ví dụ: "It was the CEO who signed the contract yesterday." (Nhấn mạnh chính CEO là người ký).`,
+    toeicTips: `**III. CÁC BẪY THƯỜNG GẶP TRONG BÀI THI (Common Pitfalls)**
+
+- **Bẫy Đảo ngữ loại 1 (Should) trong TOEIC**:
+  - TOEIC thường bắt đầu câu bằng khoảng trống: "_______ you experience any difficulties, call our hotline."
+  - Nhìn thấy 'V-bare' (experience) và mệnh đề sau, ta biết đây là đảo ngữ của 'If'. Đáp án phải là **Should**.
+- **Bẫy trật tự từ sau đảo ngữ**: Nhớ rằng sau trạng từ phủ định, ta đảo trợ động từ lên trước, nhưng động từ chính trả về dạng nguyên mẫu (đối với do/does/did) hoặc V3/ed (đối với have/has/had).`,
+    questions: [
+      {
+        id: "ic_q1",
+        questionText: "Seldom _______ such an impressive sales growth in the retail division.",
+        options: ["we have seen", "have we seen", "we saw", "did we saw"],
+        correctAnswer: "have we seen",
+        explanation: "'have we seen' is correct because 'Seldom' is a negative adverb, which triggers inversion. The auxiliary verb 'have' must precede the subject 'we', followed by the past participle 'seen'."
+      },
+      {
+        id: "ic_q2",
+        questionText: "_______ you require any assistance with the installation, please contact tech support.",
+        options: ["Should", "If you", "Were", "Had"],
+        correctAnswer: "Should",
+        explanation: "'Should' is correct as it represents type 1 conditional inversion: 'Should you require' instead of 'If you require'."
+      },
+      {
+        id: "ic_q3",
+        questionText: "It was the CEO _______ negotiated the partnership with the Japanese corporation.",
+        options: ["who", "whom", "which", "whose"],
+        correctAnswer: "who",
+        explanation: "'who' is correct because this is a cleft sentence ('It was ... who/that ...') emphasizing the subject 'the CEO'."
+      },
+      {
+        id: "ic_q4",
+        questionText: "Not only _______ the quarterly goals, but they also exceeded the annual forecasts.",
+        options: ["did the team meet", "the team met", "has the team met", "the team did meet"],
+        correctAnswer: "did the team meet",
+        explanation: "'did the team meet' is correct because 'Not only' at the start of a sentence triggers inversion. 'did' goes before 'the team', and the verb becomes V-bare 'meet'."
+      },
+      {
+        id: "ic_q5",
+        questionText: "Had the directors _______ the financial risks, they would not have approved the acquisition.",
+        options: ["know", "known", "knowing", "knew"],
+        correctAnswer: "known",
+        explanation: "'known' is correct because 'Had' at the start indicates type 3 conditional inversion ('Had the directors known' = 'If the directors had known')."
+      }
+    ]
   }
 ];
+

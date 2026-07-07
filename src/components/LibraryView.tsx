@@ -5,6 +5,7 @@ import type { VocabularyWord, UserWordProgress, GrammarProgress } from '../types
 import { formatPOS, getAimLabel, obfuscateText } from '../utils/helpers';
 import type { AccentTheme } from '../utils/helpers';
 import { defaultVocabulary } from '../data/vocabulary';
+import { b2PhrasalVerbs, b2Collocations, b2WordFamilies, b2TopicVocabulary, b2VerbPatterns } from '../data/destinationB2';
 
 interface LibraryViewProps {
   words: VocabularyWord[];
@@ -47,32 +48,37 @@ const defaultBlueTheme = {
   focusBorder: 'focus:border-blue-500'
 };
 
-export function LibraryView({
-  words,
-  progress,
-  toggleWordStarred,
-  addCustomWord,
-  resetProgress,
-  setGrammarProgress,
-  showResetConfirm,
-  setShowResetConfirm,
-  showAddWordModal,
-  setShowAddWordModal,
-  setIsReviewMode,
-  setStarredOnly,
-  location,
-  navigate,
-  theme: themeProp
-}: LibraryViewProps) {
-  const theme = themeProp || defaultBlueTheme;
-  // Library filters local state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTopic, setSelectedTopic] = useState('');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('');
-  const [selectedProgress, setSelectedProgress] = useState('');
-  const [resetError, setResetError] = useState(false);
+interface CustomWordForm {
+  word: string;
+  partOfSpeech: 'noun' | 'verb' | 'adjective' | 'adverb';
+  definition: string;
+  ipa: string;
+  example: string;
+  translation: string;
+  synonyms: string;
+  topic: 'Office' | 'Marketing' | 'Finance' | 'Personnel' | 'Travel';
+  difficulty: 'easy' | 'medium' | 'hard';
+}
 
-  // Form local state
+interface AddWordModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (wordData: {
+    word: string;
+    partOfSpeech: 'noun' | 'verb' | 'adjective' | 'adverb';
+    definition: string;
+    ipa: string;
+    example: string;
+    exampleTranslation: string;
+    synonyms: string[];
+    topic: 'Office' | 'Marketing' | 'Finance' | 'Personnel' | 'Travel';
+    difficulty: 'easy' | 'medium' | 'hard';
+  }) => void;
+  words: VocabularyWord[];
+  theme: AccentTheme;
+}
+
+function AddWordModal({ isOpen, onClose, onSubmit, words, theme }: AddWordModalProps) {
   const [form, setForm] = useState<CustomWordForm>({
     word: '',
     partOfSpeech: 'noun',
@@ -86,41 +92,7 @@ export function LibraryView({
   });
   const [formError, setFormError] = useState('');
 
-  // Search & filter logic
-  const filteredWords = useMemo(() => {
-    return words.filter((w) => {
-      const matchSearch =
-        w.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        w.definition.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchTopic = selectedTopic ? w.topic === selectedTopic : true;
-      const matchDifficulty = selectedDifficulty ? w.difficulty === selectedDifficulty : true;
-      const wordStatus = progress[w.id]?.status || 'new';
-      const matchProgress = selectedProgress ? wordStatus === selectedProgress : true;
-
-      return matchSearch && matchTopic && matchDifficulty && matchProgress;
-    });
-  }, [words, searchQuery, selectedTopic, selectedDifficulty, selectedProgress, progress]);
-
-  // Audio helper
-  const handlePlaySound = (text: string) => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-
-      if (typeof window.speechSynthesis.getVoices === 'function') {
-        const voices = window.speechSynthesis.getVoices();
-        const enVoice = voices.find(v => v.lang.toLowerCase() === 'en-us') ||
-                        voices.find(v => v.lang.toLowerCase().includes('en-us')) ||
-                        voices.find(v => v.lang.toLowerCase().startsWith('en'));
-        if (enVoice) {
-          utterance.voice = enVoice;
-        }
-      }
-
-      window.speechSynthesis.speak(utterance);
-    }
-  };
+  if (!isOpen) return null;
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,7 +136,7 @@ export function LibraryView({
       difficulty: form.difficulty
     };
 
-    addCustomWord(newWord);
+    onSubmit(newWord);
 
     // Clear form and modal
     setForm({
@@ -178,7 +150,287 @@ export function LibraryView({
       topic: 'Office',
       difficulty: 'medium'
     });
-    setShowAddWordModal(false);
+    onClose();
+  };
+
+  return (
+    <div
+      data-testid="add-word-modal"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 overflow-y-auto"
+    >
+      <div className="bg-slate-800 border border-slate-700 p-6 rounded-3xl shadow-2xl max-w-md w-full my-8 space-y-6">
+        <div className="flex justify-between items-center border-b border-slate-700/50 pb-3">
+          <h3 className="text-lg font-black text-slate-100 flex items-center gap-2">
+            <Plus className={`w-5 h-5 ${theme.text}`} />
+            Thêm từ vựng mới
+          </h3>
+          <button
+            data-testid="close-modal-btn"
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-200 text-sm font-bold"
+          >
+            Đóng
+          </button>
+        </div>
+
+        {formError && (
+          <div
+            data-testid="form-error-message"
+            className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-xs flex items-center gap-2"
+          >
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{formError}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleFormSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3.5">
+            <div className="space-y-1">
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Từ vựng (English) *</label>
+              <input
+                type="text"
+                data-testid="form-word"
+                value={form.word}
+                onChange={(e) => setForm({ ...form, word: e.target.value })}
+                className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm transition-all`}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Từ loại *</label>
+              <select
+                data-testid="form-pos"
+                value={form.partOfSpeech}
+                onChange={(e) => setForm({ ...form, partOfSpeech: e.target.value as 'noun' | 'verb' | 'adjective' | 'adverb' })}
+                className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm cursor-pointer transition-all`}
+              >
+                <option value="noun">Noun (Danh từ)</option>
+                <option value="verb">Verb (Động từ)</option>
+                <option value="adjective">Adjective (Tính từ)</option>
+                <option value="adverb">Adverb (Trạng từ)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Phiên âm IPA</label>
+            <input
+              type="text"
+              data-testid="form-ipa"
+              placeholder="Ví dụ: /əˈtɛnd/"
+              value={form.ipa}
+              onChange={(e) => setForm({ ...form, ipa: e.target.value })}
+              className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm transition-all`}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Nghĩa tiếng Việt *</label>
+            <input
+              type="text"
+              placeholder="Ví dụ: tham gia, có mặt"
+              data-testid="form-definition"
+              value={form.definition}
+              onChange={(e) => setForm({ ...form, definition: e.target.value })}
+              className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm transition-all`}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Ví dụ tiếng Anh</label>
+            <input
+              type="text"
+              data-testid="form-example"
+              value={form.example}
+              onChange={(e) => setForm({ ...form, example: e.target.value })}
+              className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm transition-all`}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Dịch ví dụ</label>
+            <input
+              type="text"
+              data-testid="form-translation"
+              value={form.translation}
+              onChange={(e) => setForm({ ...form, translation: e.target.value })}
+              className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm transition-all`}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Từ đồng nghĩa (Cách nhau bằng dấu phẩy)</label>
+            <input
+              type="text"
+              placeholder="Ví dụ: join, participate"
+              value={form.synonyms}
+              onChange={(e) => setForm({ ...form, synonyms: e.target.value })}
+              className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm transition-all`}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3.5">
+            <div className="space-y-1">
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Chủ đề</label>
+              <select
+                data-testid="form-topic"
+                value={form.topic}
+                onChange={(e) => setForm({ ...form, topic: e.target.value as 'Office' | 'Marketing' | 'Finance' | 'Personnel' | 'Travel' })}
+                className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm cursor-pointer transition-all`}
+              >
+                <option value="Office">Office (Văn phòng)</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Finance">Finance (Tài chính)</option>
+                <option value="Personnel">Personnel (Nhân sự)</option>
+                <option value="Travel">Travel (Du lịch)</option>
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Độ khó (Aim Target)</label>
+              <select
+                data-testid="form-difficulty"
+                value={form.difficulty}
+                onChange={(e) => setForm({ ...form, difficulty: e.target.value as 'easy' | 'medium' | 'hard' })}
+                className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm cursor-pointer transition-all`}
+              >
+                <option value="easy">Aim 450+ (Dễ)</option>
+                <option value="medium">Aim 650+ (Trung bình)</option>
+                <option value="hard">Aim 800+ (Khó)</option>
+              </select>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            data-testid="form-submit-btn"
+            className={`w-full py-3 text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer text-center ${theme.bg} ${theme.hoverBg}`}
+          >
+            Xác nhận thêm từ
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export function LibraryView({
+  words,
+  progress,
+  toggleWordStarred,
+  addCustomWord,
+  resetProgress,
+  setGrammarProgress,
+  showResetConfirm,
+  setShowResetConfirm,
+  showAddWordModal,
+  setShowAddWordModal,
+  setIsReviewMode,
+  setStarredOnly,
+  location,
+  navigate,
+  theme: themeProp
+}: LibraryViewProps) {
+  const theme = themeProp || defaultBlueTheme;
+  // Library filters local state
+  const [activeSubTab, setActiveSubTab] = useState<'words' | 'phrasals' | 'collocations' | 'wordFamilies' | 'b2vocab' | 'verbPatterns'>('words');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTopic, setSelectedTopic] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [selectedProgress, setSelectedProgress] = useState('');
+  const [collocationType, setCollocationType] = useState<string>('');
+  const [resetError, setResetError] = useState(false);
+  const [selectedB2Topic, setSelectedB2Topic] = useState('');
+
+  // Search & filter logic
+  const filteredWords = useMemo(() => {
+    return words.filter((w) => {
+      const matchSearch =
+        w.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        w.definition.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchTopic = selectedTopic ? w.topic === selectedTopic : true;
+      const matchDifficulty = selectedDifficulty ? w.difficulty === selectedDifficulty : true;
+      const wordStatus = progress[w.id]?.status || 'new';
+      const matchProgress = selectedProgress ? wordStatus === selectedProgress : true;
+
+      return matchSearch && matchTopic && matchDifficulty && matchProgress;
+    });
+  }, [words, searchQuery, selectedTopic, selectedDifficulty, selectedProgress, progress]);
+
+  const filteredPhrasals = useMemo(() => {
+    return b2PhrasalVerbs.filter(p =>
+      p.phrase.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.definition.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  const filteredCollocations = useMemo(() => {
+    return b2Collocations.filter(c => {
+      const matchesSearch = c.phrase.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            c.meaning.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = collocationType ? c.type === collocationType : true;
+      return matchesSearch && matchesType;
+    });
+  }, [searchQuery, collocationType]);
+
+  const filteredWordFamilies = useMemo(() => {
+    return b2WordFamilies.filter(f =>
+      f.verb.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      f.noun.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      f.adjective.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      f.adverb.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  const filteredB2Vocab = useMemo(() => {
+    return b2TopicVocabulary.filter(v => {
+      const matchesSearch =
+        v.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.definition.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesTopic = selectedB2Topic ? v.topic === selectedB2Topic : true;
+      return matchesSearch && matchesTopic;
+    });
+  }, [searchQuery, selectedB2Topic]);
+
+  const groupedB2Vocab = useMemo(() => {
+    const groups: Record<string, typeof filteredB2Vocab> = {};
+    filteredB2Vocab.forEach((w) => {
+      const topic = w.topic || 'General';
+      if (!groups[topic]) {
+        groups[topic] = [];
+      }
+      groups[topic].push(w);
+    });
+    return groups;
+  }, [filteredB2Vocab]);
+
+  const filteredVerbPatterns = useMemo(() => {
+    return b2VerbPatterns.filter(v =>
+      v.verb.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.toMeaning.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.ingMeaning.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  // Audio helper
+  const handlePlaySound = (text: string) => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+
+      if (typeof window.speechSynthesis.getVoices === 'function') {
+        const voices = window.speechSynthesis.getVoices();
+        const enVoice = voices.find(v => v.lang.toLowerCase() === 'en-us') ||
+                        voices.find(v => v.lang.toLowerCase().includes('en-us')) ||
+                        voices.find(v => v.lang.toLowerCase().startsWith('en'));
+        if (enVoice) {
+          utterance.voice = enVoice;
+        }
+      }
+
+      window.speechSynthesis.speak(utterance);
+    }
   };
 
   return (
@@ -215,339 +467,659 @@ export function LibraryView({
         </div>
       </div>
 
-      {/* Filter panel */}
-      <div className="bg-slate-800 border border-slate-700/60 p-5 rounded-3xl shadow-xl space-y-4">
-        <div className="flex items-center gap-2 text-slate-300 font-bold text-sm border-b border-slate-700/50 pb-2">
-          <Filter className="w-4 h-4" />
-          Bộ lọc tìm kiếm thông minh
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
-          {/* Text Search */}
-          <div className="relative">
-            <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-            <input
-              type="text"
-              data-testid="search-input"
-              placeholder="Tìm từ vựng, ý nghĩa..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-sm placeholder-slate-500 outline-none text-slate-200 transition-all`}
-            />
-          </div>
-
-          {/* Topic Select */}
-          <select
-            data-testid="topic-select"
-            value={selectedTopic}
-            onChange={(e) => setSelectedTopic(e.target.value)}
-            className={`bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-350 outline-none cursor-pointer ${theme.focusBorder}`}
+      {/* Sub tabs for Destination B2 content */}
+      <div className="flex border-b border-slate-800 pb-px">
+        <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800/80 gap-1 flex-wrap">
+          <button
+            onClick={() => { setActiveSubTab('words'); setSearchQuery(''); setSelectedB2Topic(''); }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeSubTab === 'words'
+                ? `${theme.bg} text-white shadow-md`
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+            }`}
           >
-            <option value="">Tất cả chủ đề</option>
-            <option value="Office">Office</option>
-            <option value="Marketing">Marketing</option>
-            <option value="Finance">Finance</option>
-            <option value="Personnel">Personnel</option>
-            <option value="Travel">Travel</option>
-          </select>
-
-          {/* Difficulty Select */}
-          <select
-            data-testid="difficulty-select"
-            value={selectedDifficulty}
-            onChange={(e) => setSelectedDifficulty(e.target.value)}
-            className={`bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-350 outline-none cursor-pointer ${theme.focusBorder}`}
+            Từ vựng chính
+          </button>
+          <button
+            onClick={() => { setActiveSubTab('b2vocab'); setSearchQuery(''); setSelectedB2Topic(''); }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeSubTab === 'b2vocab'
+                ? `${theme.bg} text-white shadow-md`
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+            }`}
           >
-            <option value="">Tất cả độ khó</option>
-            <option value="easy">Aim 450+ (Dễ)</option>
-            <option value="medium">Aim 650+ (Trung bình)</option>
-            <option value="hard">Aim 800+ (Khó)</option>
-          </select>
-
-          {/* Progress Select */}
-          <select
-            data-testid="progress-select"
-            value={selectedProgress}
-            onChange={(e) => setSelectedProgress(e.target.value)}
-            className={`bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-350 outline-none cursor-pointer ${theme.focusBorder}`}
+            B2 Topic Vocab
+          </button>
+          <button
+            onClick={() => { setActiveSubTab('phrasals'); setSearchQuery(''); setSelectedB2Topic(''); }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeSubTab === 'phrasals'
+                ? `${theme.bg} text-white shadow-md`
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+            }`}
           >
-            <option value="">Tất cả tiến độ</option>
-            <option value="new">Từ mới (New)</option>
-            <option value="learning">Đang học (Learning)</option>
-            <option value="mastered">Đã thuộc (Mastered)</option>
-          </select>
+            B2 Phrasal Verbs
+          </button>
+          <button
+            onClick={() => { setActiveSubTab('collocations'); setSearchQuery(''); setSelectedB2Topic(''); }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeSubTab === 'collocations'
+                ? `${theme.bg} text-white shadow-md`
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+            }`}
+          >
+            B2 Collocations
+          </button>
+          <button
+            onClick={() => { setActiveSubTab('wordFamilies'); setSearchQuery(''); setSelectedB2Topic(''); }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeSubTab === 'wordFamilies'
+                ? `${theme.bg} text-white shadow-md`
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+            }`}
+          >
+            B2 Word Formation
+          </button>
+          <button
+            onClick={() => { setActiveSubTab('verbPatterns'); setSearchQuery(''); setSelectedB2Topic(''); }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeSubTab === 'verbPatterns'
+                ? `${theme.bg} text-white shadow-md`
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+            }`}
+          >
+            B2 Verb Patterns
+          </button>
         </div>
       </div>
 
-      {/* Dictionary Card List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredWords.map((word) => {
-          const wordStatus = progress[word.id]?.status || 'new';
-          const isStarred = progress[word.id]?.isStarred || false;
+      {activeSubTab === 'words' && (
+        <>
+          {/* Filter panel */}
+          <div className="bg-slate-800 border border-slate-700/60 p-5 rounded-3xl shadow-xl space-y-4">
+            <div className="flex items-center gap-2 text-slate-300 font-bold text-sm border-b border-slate-700/50 pb-2">
+              <Filter className="w-4 h-4" />
+              Bộ lọc tìm kiếm thông minh
+            </div>
 
-          return (
-            <div
-              key={word.id}
-              data-testid="dictionary-word"
-              className={`bg-slate-800 border border-slate-700 p-6 rounded-2xl space-y-4 ${theme.borderHover} transition-all flex flex-col justify-between group shadow-md`}
-            >
-              <div className="flex justify-between items-start gap-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${
-                      wordStatus === 'mastered'
-                        ? 'bg-emerald-500/10 text-emerald-400'
-                        : wordStatus === 'learning'
-                          ? 'bg-amber-500/10 text-amber-400'
-                          : 'bg-slate-900 text-slate-450 border border-slate-700'
-                    }`}>
-                      {wordStatus === 'mastered' ? 'Đã thuộc' : wordStatus === 'learning' ? 'Đang học' : 'Từ mới'}
-                    </span>
-                    <span className="px-2 py-0.5 bg-slate-900/60 text-slate-400 rounded-md text-[9px] font-bold tracking-wider">
-                      {getAimLabel(word.difficulty)}
-                    </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+              {/* Text Search */}
+              <div className="relative">
+                <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                  type="text"
+                  data-testid="search-input"
+                  placeholder="Tìm từ vựng, ý nghĩa..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={`w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-sm placeholder-slate-500 outline-none text-slate-200 transition-all`}
+                />
+              </div>
+
+              {/* Topic Select */}
+              <select
+                data-testid="topic-select"
+                value={selectedTopic}
+                onChange={(e) => setSelectedTopic(e.target.value)}
+                className={`bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-350 outline-none cursor-pointer ${theme.focusBorder}`}
+              >
+                <option value="">Tất cả chủ đề</option>
+                <option value="Office">Office</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Finance">Finance</option>
+                <option value="Personnel">Personnel</option>
+                <option value="Travel">Travel</option>
+              </select>
+
+              {/* Difficulty Select */}
+              <select
+                data-testid="difficulty-select"
+                value={selectedDifficulty}
+                onChange={(e) => setSelectedDifficulty(e.target.value)}
+                className={`bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-350 outline-none cursor-pointer ${theme.focusBorder}`}
+              >
+                <option value="">Tất cả độ khó</option>
+                <option value="easy">Aim 450+ (Dễ)</option>
+                <option value="medium">Aim 650+ (Trung bình)</option>
+                <option value="hard">Aim 800+ (Khó)</option>
+              </select>
+
+              {/* Progress Select */}
+              <select
+                data-testid="progress-select"
+                value={selectedProgress}
+                onChange={(e) => setSelectedProgress(e.target.value)}
+                className={`bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-350 outline-none cursor-pointer ${theme.focusBorder}`}
+              >
+                <option value="">Tất cả tiến độ</option>
+                <option value="new">Từ mới (New)</option>
+                <option value="learning">Đang học (Learning)</option>
+                <option value="mastered">Đã thuộc (Mastered)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Dictionary Card List */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredWords.map((word) => {
+              const wordStatus = progress[word.id]?.status || 'new';
+              const isStarred = progress[word.id]?.isStarred || false;
+
+              return (
+                <div
+                  key={word.id}
+                  data-testid="dictionary-word"
+                  className={`bg-slate-800 border border-slate-700 p-6 rounded-2xl space-y-4 ${theme.borderHover} transition-all flex flex-col justify-between group shadow-md`}
+                >
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${
+                          wordStatus === 'mastered'
+                            ? 'bg-emerald-500/10 text-emerald-400'
+                            : wordStatus === 'learning'
+                              ? 'bg-amber-500/10 text-amber-400'
+                              : 'bg-slate-900 text-slate-450 border border-slate-700'
+                        }`}>
+                          {wordStatus === 'mastered' ? 'Đã thuộc' : wordStatus === 'learning' ? 'Đang học' : 'Từ mới'}
+                        </span>
+                        <span className="px-2 py-0.5 bg-slate-900/60 text-slate-400 rounded-md text-[9px] font-bold tracking-wider">
+                          {getAimLabel(word.difficulty)}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-100 tracking-tight mt-2 flex items-center gap-2">
+                        {obfuscateText(word.word, word.word, searchQuery)}
+                        <span className="text-slate-400 font-normal italic text-xs">
+                          ({formatPOS(word.partOfSpeech)})
+                        </span>
+                      </h3>
+                      <p className="text-slate-355 text-slate-400 text-sm font-mono mt-0.5">
+                        [{word.ipa}]
+                      </p>
+                      <p data-testid="word-definition" className="text-sm text-slate-200 mt-2 font-medium">
+                        {word.definition}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handlePlaySound(word.word)}
+                        className="p-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-400 hover:text-slate-100 cursor-pointer transition-colors"
+                      >
+                        <Volume2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        data-testid={`star-btn-${word.id}`}
+                        onClick={() => toggleWordStarred(word.id)}
+                        className="p-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
+                      >
+                        <Star className={`w-4 h-4 ${isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
+                      </button>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-100 tracking-tight mt-2 flex items-center gap-2">
-                    {obfuscateText(word.word, word.word, searchQuery)}
-                    <span className="text-slate-400 font-normal italic text-xs">
-                      ({formatPOS(word.partOfSpeech)})
+
+                  <div className="space-y-2 border-t border-slate-700/40 pt-3">
+                    <div>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Ý nghĩa</p>
+                      <p className="text-sm font-semibold text-slate-200">
+                        {obfuscateText(word.definition, word.definition, searchQuery)}
+                      </p>
+                    </div>
+
+                    {word.example && (
+                      <div className="bg-slate-900/20 p-3 border border-slate-750 rounded-xl space-y-0.5">
+                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Ví dụ thực tế</p>
+                        <p className="text-xs text-slate-300 italic font-semibold leading-relaxed break-words">
+                          "{word.example}"
+                        </p>
+                        {word.exampleTranslation && (
+                          <p className="text-[11px] text-indigo-300/85 break-words">
+                            {word.exampleTranslation}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {word.synonyms && word.synonyms.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Từ đồng nghĩa</p>
+                        <div className="flex flex-wrap gap-1">
+                          {word.synonyms.map((syn, idx) => (
+                            <span key={idx} className="px-1.5 py-0.5 bg-slate-900 border border-slate-700 text-slate-300 text-[10px] font-medium rounded-md">
+                              {syn}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {filteredWords.length === 0 && (
+              <div className="col-span-1 md:col-span-2 text-center py-16 bg-slate-800/40 border border-slate-700/50 rounded-3xl text-slate-500 space-y-2 shadow-inner">
+                <AlertCircle className="w-8 h-8 mx-auto text-slate-600" />
+                <h4 className="font-bold text-slate-400">Không tìm thấy từ vựng nào</h4>
+                <p className="text-xs max-w-xs mx-auto text-slate-500">
+                  Hãy thử thay đổi điều kiện tìm kiếm hoặc nhấp chọn "Thêm từ vựng mới" để tự đóng góp vào kho học tập.
+                </p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {activeSubTab === 'b2vocab' && (
+        <div className="space-y-6">
+          <div className="bg-slate-800 border border-slate-700/60 p-5 rounded-3xl shadow-xl flex flex-col sm:flex-row gap-4 items-center">
+            <div className="relative flex-1 w-full">
+              <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Tìm từ vựng Destination B2..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-sm placeholder-slate-500 outline-none text-slate-200 transition-all`}
+              />
+            </div>
+            <select
+              data-testid="b2-topic-select"
+              value={selectedB2Topic}
+              onChange={(e) => setSelectedB2Topic(e.target.value)}
+              className={`bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-350 outline-none cursor-pointer w-full sm:w-48 ${theme.focusBorder}`}
+            >
+              <option value="">Tất cả chủ đề B2</option>
+              <option value="Travel">Travel</option>
+              <option value="Hobbies">Hobbies</option>
+              <option value="Science">Science</option>
+              <option value="Media">Media</option>
+              <option value="People">People</option>
+              <option value="Education">Education</option>
+              <option value="Weather">Weather</option>
+              <option value="Health">Health</option>
+              <option value="Food">Food</option>
+              <option value="Money">Money</option>
+              <option value="Work">Work</option>
+              <option value="General">General</option>
+            </select>
+          </div>
+
+          <div className="space-y-10">
+            {Object.entries(groupedB2Vocab).map(([topicName, wordsInTopic]) => {
+              if (wordsInTopic.length === 0) return null;
+              return (
+                <div key={topicName} className="space-y-4">
+                  <div className="flex items-center gap-3 border-b border-slate-750 pb-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${theme.bg}`} />
+                    <div className="text-base font-bold text-slate-300 uppercase tracking-wider">
+                      Chủ đề: {topicName} ({wordsInTopic.length} từ)
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {wordsInTopic.map((w) => (
+                      <div
+                        key={w.word}
+                        className="bg-slate-800 border border-slate-700 p-6 rounded-2xl space-y-4 hover:border-slate-600 transition-all flex flex-col justify-between shadow-md"
+                      >
+                        <div className="flex justify-between items-start gap-4">
+                          <div>
+                            <h3 className="text-xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
+                              {w.word}
+                              <span className="text-slate-400 font-normal italic text-xs">
+                                ({w.partOfSpeech})
+                              </span>
+                            </h3>
+                            <p className="text-slate-400 text-sm font-mono mt-0.5">
+                              [{w.ipa}]
+                            </p>
+                            <p className="text-sm text-slate-200 mt-2 font-medium">
+                              {w.definition}
+                            </p>
+                          </div>
+
+                          <button
+                            onClick={() => handlePlaySound(w.word)}
+                            className="p-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-400 hover:text-slate-100 cursor-pointer transition-colors"
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-2 border-t border-slate-700/40 pt-3">
+                          <div className="bg-slate-900/20 p-3 border border-slate-750 rounded-xl space-y-0.5">
+                            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Ví dụ thực tế</p>
+                            <p className="text-xs text-slate-300 italic font-semibold leading-relaxed break-words">
+                              "{w.example}"
+                            </p>
+                            <p className="text-[11px] text-indigo-300/85 break-words">
+                              {w.translation}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+
+            {filteredB2Vocab.length === 0 && (
+              <div className="text-center py-16 text-slate-500">
+                Không tìm thấy từ vựng nào.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeSubTab === 'verbPatterns' && (
+        <div className="space-y-6">
+          <div className="bg-slate-800 border border-slate-700/60 p-5 rounded-3xl shadow-xl flex gap-4 items-center">
+            <div className="relative flex-1">
+              <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Tìm động từ (ví dụ: stop, try, remember...)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-sm placeholder-slate-500 outline-none text-slate-200 transition-all`}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
+            {filteredVerbPatterns.map((vp) => (
+              <div
+                key={vp.verb}
+                className="bg-slate-850 border border-slate-700 p-6 rounded-3xl space-y-4 hover:border-slate-600 transition-all shadow-lg"
+              >
+                <div className="flex justify-between items-center border-b border-slate-700/50 pb-3">
+                  <h3 className="text-2xl font-bold text-slate-100 tracking-tight capitalize flex items-center gap-3">
+                    {vp.verb}
+                    <span className="text-slate-400 font-normal italic text-xs bg-slate-800 px-2.5 py-1 rounded-md border border-slate-750">
+                      Verb Patterns
                     </span>
                   </h3>
-                  <p className="text-slate-350 text-sm font-mono mt-0.5">
-                    [{word.ipa}]
-                  </p>
-                  <p data-testid="word-definition" className="text-sm text-slate-200 mt-2 font-medium">
-                    {word.definition}
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
                   <button
-                    onClick={() => handlePlaySound(word.word)}
+                    onClick={() => handlePlaySound(vp.verb)}
                     className="p-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-400 hover:text-slate-100 cursor-pointer transition-colors"
                   >
                     <Volume2 className="w-4 h-4" />
                   </button>
-                  <button
-                    data-testid={`star-btn-${word.id}`}
-                    onClick={() => toggleWordStarred(word.id)}
-                    className="p-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
-                  >
-                    <Star className={`w-4 h-4 ${isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2 border-t border-slate-700/40 pt-3">
-                <div>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Ý nghĩa</p>
-                  <p className="text-sm font-semibold text-slate-200">
-                    {obfuscateText(word.definition, word.definition, searchQuery)}
-                  </p>
                 </div>
 
-                {word.example && (
-                  <div className="bg-slate-900/20 p-3 border border-slate-750 rounded-xl space-y-0.5">
-                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Ví dụ thực tế</p>
-                    <p className="text-xs text-slate-300 italic font-semibold leading-relaxed break-words">
-                      "{word.example}"
-                    </p>
-                    {word.exampleTranslation && (
-                      <p className="text-[11px] text-indigo-300/85 break-words">
-                        {word.exampleTranslation}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {word.synonyms && word.synonyms.length > 0 && (
-                  <div className="space-y-1">
-                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Từ đồng nghĩa</p>
-                    <div className="flex flex-wrap gap-1">
-                      {word.synonyms.map((syn, idx) => (
-                        <span key={idx} className="px-1.5 py-0.5 bg-slate-900 border border-slate-700 text-slate-300 text-[10px] font-medium rounded-md">
-                          {syn}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  {/* to-Infinitive Section */}
+                  <div className="bg-slate-900/40 border border-slate-750 p-4 rounded-2xl flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-bold rounded-md">
+                          + to-Infinitive
                         </span>
-                      ))}
+                      </div>
+                      <p className="text-sm font-semibold text-slate-200 leading-snug">
+                        {vp.toMeaning}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 bg-slate-900/60 p-3 border border-slate-750 rounded-xl space-y-1">
+                      <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Ví dụ thực tế</p>
+                      <p className="text-xs text-slate-300 italic font-semibold leading-relaxed">
+                        "{vp.toExample}"
+                      </p>
+                      <p className="text-[11px] text-indigo-300/85">
+                        {vp.toTranslation}
+                      </p>
                     </div>
                   </div>
-                )}
+
+                  {/* -ing Section */}
+                  <div className="bg-slate-900/40 border border-slate-750 p-4 rounded-2xl flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold rounded-md">
+                          + V-ing
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold text-slate-200 leading-snug">
+                        {vp.ingMeaning}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 bg-slate-900/60 p-3 border border-slate-750 rounded-xl space-y-1">
+                      <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Ví dụ thực tế</p>
+                      <p className="text-xs text-slate-300 italic font-semibold leading-relaxed">
+                        "{vp.ingExample}"
+                      </p>
+                      <p className="text-[11px] text-indigo-300/85">
+                        {vp.ingTranslation}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            ))}
 
-        {filteredWords.length === 0 && (
-          <div className="col-span-1 md:col-span-2 text-center py-16 bg-slate-800/40 border border-slate-700/50 rounded-3xl text-slate-500 space-y-2 shadow-inner">
-            <AlertCircle className="w-8 h-8 mx-auto text-slate-600" />
-            <h4 className="font-bold text-slate-400">Không tìm thấy từ vựng nào</h4>
-            <p className="text-xs max-w-xs mx-auto text-slate-500">
-              Hãy thử thay đổi điều kiện tìm kiếm hoặc nhấp chọn "Thêm từ vựng mới" để tự đóng góp vào kho học tập.
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Add word modal */}
-      {showAddWordModal && (
-        <div
-          data-testid="add-word-modal"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 overflow-y-auto"
-        >
-          <div className="bg-slate-800 border border-slate-700 p-6 rounded-3xl shadow-2xl max-w-md w-full my-8 space-y-6">
-            <div className="flex justify-between items-center border-b border-slate-700/50 pb-3">
-              <h3 className="text-lg font-black text-slate-100 flex items-center gap-2">
-                <Plus className={`w-5 h-5 ${theme.text}`} />
-                Thêm từ vựng mới
-              </h3>
-              <button
-                data-testid="close-modal-btn"
-                onClick={() => setShowAddWordModal(false)}
-                className="text-slate-400 hover:text-slate-200 text-sm font-bold"
-              >
-                Đóng
-              </button>
-            </div>
-
-            {formError && (
-              <div
-                data-testid="form-error-message"
-                className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-xs flex items-center gap-2"
-              >
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>{formError}</span>
+            {filteredVerbPatterns.length === 0 && (
+              <div className="text-center py-16 text-slate-500">
+                Không tìm thấy động từ nào.
               </div>
             )}
-
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3.5">
-                <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Từ vựng (English) *</label>
-                  <input
-                    type="text"
-                    data-testid="form-word"
-                    value={form.word}
-                    onChange={(e) => setForm({ ...form, word: e.target.value })}
-                    className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm transition-all`}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Từ loại *</label>
-                  <select
-                    data-testid="form-pos"
-                    value={form.partOfSpeech}
-                    onChange={(e) => setForm({ ...form, partOfSpeech: e.target.value as 'noun' | 'verb' | 'adjective' | 'adverb' })}
-                    className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm cursor-pointer transition-all`}
-                  >
-                    <option value="noun">Noun (Danh từ)</option>
-                    <option value="verb">Verb (Động từ)</option>
-                    <option value="adjective">Adjective (Tính từ)</option>
-                    <option value="adverb">Adverb (Trạng từ)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Phiên âm IPA</label>
-                <input
-                  type="text"
-                  data-testid="form-ipa"
-                  placeholder="Ví dụ: /əˈtɛnd/"
-                  value={form.ipa}
-                  onChange={(e) => setForm({ ...form, ipa: e.target.value })}
-                  className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm transition-all`}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Nghĩa tiếng Việt *</label>
-                <input
-                  type="text"
-                  placeholder="Ví dụ: tham gia, có mặt"
-                  data-testid="form-definition"
-                  value={form.definition}
-                  onChange={(e) => setForm({ ...form, definition: e.target.value })}
-                  className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm transition-all`}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Ví dụ tiếng Anh</label>
-                <input
-                  type="text"
-                  data-testid="form-example"
-                  value={form.example}
-                  onChange={(e) => setForm({ ...form, example: e.target.value })}
-                  className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm transition-all`}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Dịch ví dụ</label>
-                <input
-                  type="text"
-                  data-testid="form-translation"
-                  value={form.translation}
-                  onChange={(e) => setForm({ ...form, translation: e.target.value })}
-                  className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm transition-all`}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Từ đồng nghĩa (Cách nhau bằng dấu phẩy)</label>
-                <input
-                  type="text"
-                  placeholder="Ví dụ: join, participate"
-                  value={form.synonyms}
-                  onChange={(e) => setForm({ ...form, synonyms: e.target.value })}
-                  className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm transition-all`}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3.5">
-                <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Chủ đề</label>
-                  <select
-                    data-testid="form-topic"
-                    value={form.topic}
-                    onChange={(e) => setForm({ ...form, topic: e.target.value as 'Office' | 'Marketing' | 'Finance' | 'Personnel' | 'Travel' })}
-                    className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm cursor-pointer transition-all`}
-                  >
-                    <option value="Office">Office (Văn phòng)</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="Finance">Finance (Tài chính)</option>
-                    <option value="Personnel">Personnel (Nhân sự)</option>
-                    <option value="Travel">Travel (Du lịch)</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Độ khó (Aim Target)</label>
-                  <select
-                    data-testid="form-difficulty"
-                    value={form.difficulty}
-                    onChange={(e) => setForm({ ...form, difficulty: e.target.value as 'easy' | 'medium' | 'hard' })}
-                    className={`w-full py-2.5 px-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-slate-200 outline-none text-sm cursor-pointer transition-all`}
-                  >
-                    <option value="easy">Aim 450+ (Dễ)</option>
-                    <option value="medium">Aim 650+ (Trung bình)</option>
-                    <option value="hard">Aim 800+ (Khó)</option>
-                  </select>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                data-testid="form-submit-btn"
-                className={`w-full py-3 text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer text-center ${theme.bg} ${theme.hoverBg}`}
-              >
-                Xác nhận thêm từ
-              </button>
-            </form>
           </div>
         </div>
       )}
+
+      {activeSubTab === 'phrasals' && (
+        <div className="space-y-6">
+          <div className="bg-slate-800 border border-slate-700/60 p-5 rounded-3xl shadow-xl flex gap-4 items-center">
+            <div className="relative flex-1">
+              <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Tìm cụm động từ (phrasal verb)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-sm placeholder-slate-500 outline-none text-slate-200 transition-all`}
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredPhrasals.map((pv) => (
+              <div key={pv.phrase} className="bg-slate-800 border border-slate-700 p-6 rounded-2xl space-y-3 hover:border-slate-605 border-slate-700/70 hover:border-slate-600 transition-all flex flex-col justify-between shadow-md">
+                <div className="flex justify-between items-start gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-indigo-400 font-mono">{pv.phrase}</h3>
+                    <p className="text-sm font-semibold text-slate-200 mt-1">{pv.definition}</p>
+                  </div>
+                  <button
+                    onClick={() => handlePlaySound(pv.phrase)}
+                    className="p-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-400 hover:text-slate-100 cursor-pointer transition-colors"
+                  >
+                    <Volume2 className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="bg-slate-900/40 p-3 border border-slate-700/30 rounded-xl space-y-1 text-xs">
+                  <p className="text-slate-450 text-slate-400 italic">"{pv.example}"</p>
+                  <p className="text-indigo-300/85">{pv.translation}</p>
+                </div>
+              </div>
+            ))}
+            {filteredPhrasals.length === 0 && (
+              <div className="col-span-1 md:col-span-2 text-center py-12 text-slate-500">Không tìm thấy cụm động từ nào.</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeSubTab === 'collocations' && (
+        <div className="space-y-6">
+          <div className="bg-slate-800 border border-slate-700/60 p-5 rounded-3xl shadow-xl grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="relative">
+              <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Tìm cụm từ cố định (collocation)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-sm placeholder-slate-500 outline-none text-slate-200 transition-all`}
+              />
+            </div>
+            <select
+              value={collocationType}
+              onChange={(e) => setCollocationType(e.target.value)}
+              className={`bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-350 outline-none cursor-pointer ${theme.focusBorder}`}
+            >
+              <option value="">Tất cả loại cụm từ</option>
+              <option value="prepositional">Cụm giới từ (Prepositional Phrases)</option>
+              <option value="collocation">Cụm từ cố định (Collocations)</option>
+              <option value="pattern">Cấu trúc động từ (Verb Patterns)</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredCollocations.map((col) => (
+              <div key={col.phrase} className="bg-slate-800 border border-slate-700 p-6 rounded-2xl space-y-3 hover:border-slate-605 border-slate-700/70 hover:border-slate-600 transition-all flex flex-col justify-between shadow-md">
+                <div className="flex justify-between items-start gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-bold text-amber-400 font-mono">{col.phrase}</h3>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                        col.type === 'prepositional'
+                          ? 'bg-blue-500/10 text-blue-400'
+                          : col.type === 'collocation'
+                            ? 'bg-purple-500/10 text-purple-400'
+                            : 'bg-emerald-500/10 text-emerald-400'
+                      }`}>
+                        {col.type === 'prepositional' && 'Giới từ'}
+                        {col.type === 'collocation' && 'Cố định'}
+                        {col.type === 'pattern' && 'Cấu trúc'}
+                      </span>
+                    </div>
+                    <p className="text-sm font-semibold text-slate-200 mt-2">{col.meaning}</p>
+                  </div>
+                  <button
+                    onClick={() => handlePlaySound(col.phrase)}
+                    className="p-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-400 hover:text-slate-100 cursor-pointer transition-colors"
+                  >
+                    <Volume2 className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="bg-slate-900/40 p-3 border border-slate-700/30 rounded-xl space-y-1 text-xs">
+                  <p className="text-slate-450 text-slate-400 italic">"{col.example}"</p>
+                  <p className="text-indigo-300/85">{col.translation}</p>
+                </div>
+              </div>
+            ))}
+            {filteredCollocations.length === 0 && (
+              <div className="col-span-1 md:col-span-2 text-center py-12 text-slate-500">Không tìm thấy cụm từ nào.</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeSubTab === 'wordFamilies' && (
+        <div className="space-y-6">
+          <div className="bg-slate-800 border border-slate-700/60 p-5 rounded-3xl shadow-xl flex gap-4 items-center">
+            <div className="relative flex-1">
+              <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Tìm gia đình từ (word family)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 ${theme.focusBorder} rounded-xl text-sm placeholder-slate-500 outline-none text-slate-200 transition-all`}
+              />
+            </div>
+          </div>
+
+          <div className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden shadow-xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm border-collapse">
+                <thead>
+                  <tr className="bg-slate-955 bg-slate-950 border-b border-slate-700 text-slate-400 font-bold">
+                    <th className="p-4">Động từ (Verb)</th>
+                    <th className="p-4">Danh từ (Noun)</th>
+                    <th className="p-4">Tính từ (Adjective)</th>
+                    <th className="p-4">Trạng từ (Adverb)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {filteredWordFamilies.map((fam, idx) => (
+                    <tr key={idx} className="hover:bg-slate-900/30 transition-colors">
+                      <td className="p-4">
+                        {fam.verb ? (
+                          <button
+                            onClick={() => handlePlaySound(fam.verb)}
+                            className="font-mono text-indigo-400 hover:underline flex items-center gap-1 text-left cursor-pointer"
+                          >
+                            {fam.verb}
+                            <Volume2 className="w-3.5 h-3.5 opacity-40" />
+                          </button>
+                        ) : (
+                          <span className="text-slate-600">-</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        {fam.noun ? (
+                          <button
+                            onClick={() => handlePlaySound(fam.noun)}
+                            className="font-mono text-emerald-400 hover:underline flex items-center gap-1 text-left cursor-pointer"
+                          >
+                            {fam.noun}
+                            <Volume2 className="w-3.5 h-3.5 opacity-40" />
+                          </button>
+                        ) : (
+                          <span className="text-slate-600">-</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        {fam.adjective ? (
+                          <button
+                            onClick={() => handlePlaySound(fam.adjective)}
+                            className="font-mono text-amber-400 hover:underline flex items-center gap-1 text-left cursor-pointer"
+                          >
+                            {fam.adjective}
+                            <Volume2 className="w-3.5 h-3.5 opacity-40" />
+                          </button>
+                        ) : (
+                          <span className="text-slate-600">-</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        {fam.adverb ? (
+                          <button
+                            onClick={() => handlePlaySound(fam.adverb)}
+                            className="font-mono text-purple-400 hover:underline flex items-center gap-1 text-left cursor-pointer"
+                          >
+                            {fam.adverb}
+                            <Volume2 className="w-3.5 h-3.5 opacity-40" />
+                          </button>
+                        ) : (
+                          <span className="text-slate-600">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredWordFamilies.length === 0 && (
+                <div className="text-center py-8 text-slate-500">Không tìm thấy gia đình từ nào.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add word modal */}
+      <AddWordModal
+        isOpen={showAddWordModal}
+        onClose={() => setShowAddWordModal(false)}
+        onSubmit={addCustomWord}
+        words={words}
+        theme={theme}
+      />
 
       {/* Reset Progress Confirmation Dialog overlay */}
       {showResetConfirm && (
