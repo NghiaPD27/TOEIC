@@ -1,13 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { GraduationCap, Search, BookOpen, ArrowRight, Volume2, RotateCcw, Award } from 'lucide-react';
+import { GraduationCap, Search, BookOpen, ArrowRight, Volume2, RotateCcw, Award, BookMarked } from 'lucide-react';
 import type { StreakState, GrammarProgress } from '../types';
 import type { AccentTheme } from '../utils/helpers';
 
 interface DashboardViewProps {
   learningWordsCount: number;
   streak: StreakState;
-  handleTabChange: (newTab: 'dashboard' | 'study' | 'test' | 'library' | 'grammar' | 'pronunciation' | 'game') => void;
+  handleTabChange: (newTab: 'dashboard' | 'study' | 'test' | 'library' | 'grammar' | 'pronunciation' | 'game' | 'vocal900') => void;
   resetProgress: () => boolean;
   setGrammarProgress: React.Dispatch<React.SetStateAction<Record<string, GrammarProgress>>>;
   navigate: (path: string) => void;
@@ -53,6 +53,28 @@ export function DashboardView({
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-slate-300">Vocabulary Training</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              onClick={() => handleTabChange('vocal900')}
+              data-testid="home-nav-vocal900"
+              className={`bg-slate-800 border border-slate-700 ${theme.borderHover} p-6 rounded-2xl cursor-pointer transition-colors flex flex-col justify-between h-40 relative overflow-hidden group`}
+            >
+              <div className="flex justify-between items-start">
+                <div className={`p-3 ${theme.lightBg} ${theme.text} rounded-xl`}>
+                  <BookMarked className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                  Target 900
+                </span>
+              </div>
+              <div>
+                <h4 className="text-xl font-bold text-slate-100 flex items-center gap-1.5">
+                  Vocal 900
+                </h4>
+                <p className="text-sm text-slate-400 mt-1">Học từ vựng chia theo Lesson.</p>
+              </div>
+            </motion.div>
+
             <motion.div
               whileHover={{ scale: 1.02 }}
               onClick={() => handleTabChange('study')}

@@ -15,6 +15,7 @@ import { GrammarView } from './components/GrammarView';
 import { GrammarTopicDetailViewWrapper } from './components/GrammarTopicDetailView';
 import { PronunciationView } from './components/PronunciationView';
 import { GameView } from './components/GameView';
+import { Vocal900View } from './components/Vocal900View';
 
 function AppContent() {
   const {
@@ -64,6 +65,7 @@ function AppContent() {
     if (path.startsWith('/grammar')) return 'grammar';
     if (path.startsWith('/pronunciation')) return 'pronunciation';
     if (path.startsWith('/game')) return 'game';
+    if (path.startsWith('/vocal900')) return 'vocal900';
     return 'dashboard';
   }, [location.pathname]);
 
@@ -129,7 +131,7 @@ function AppContent() {
   }, [ttsSpeed]);
 
   // Tab switching with confirmation warning
-  const handleTabChange = (newTab: 'dashboard' | 'study' | 'test' | 'library' | 'grammar' | 'pronunciation' | 'game') => {
+  const handleTabChange = (newTab: 'dashboard' | 'study' | 'test' | 'library' | 'grammar' | 'pronunciation' | 'game' | 'vocal900') => {
     // Cancel any active speech synthesis immediately when tab switch is requested
     if (typeof window !== 'undefined' && window.speechSynthesis && typeof window.speechSynthesis.cancel === 'function') {
       window.speechSynthesis.cancel();
@@ -149,6 +151,7 @@ function AppContent() {
 
     const pathMap = {
       dashboard: '/',
+      vocal900: '/vocal900',
       study: '/study',
       test: '/test',
       library: '/library',
@@ -432,6 +435,18 @@ function AppContent() {
             Home
           </button>
           <button
+            data-testid="tab-vocal900"
+            onClick={() => handleTabChange('vocal900')}
+            disabled={showAddWordModal || showResetConfirm}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+              activeTab === 'vocal900'
+                ? `${theme.bg} text-white shadow-md`
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            Vocal 900
+          </button>
+          <button
             data-testid="tab-study"
             onClick={() => handleTabChange('study')}
             disabled={showAddWordModal || showResetConfirm}
@@ -532,6 +547,15 @@ function AppContent() {
               setGrammarProgress={setGrammarProgress}
               navigate={navigate}
               location={location}
+              theme={theme}
+            />
+          } />
+
+          <Route path="/vocal900" element={
+            <Vocal900View
+              handleSpeak={handleSpeak}
+              ttsSpeed={ttsSpeed}
+              setTtsSpeed={setTtsSpeed}
               theme={theme}
             />
           } />

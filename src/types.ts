@@ -72,3 +72,26 @@ export interface TestAnswer {
   isCorrect: boolean;
 }
 
+export interface Vocal900Example {
+  example: string;
+  translation: string;
+}
+
+export interface Vocal900Word {
+  id: string;
+  word: string;
+  partOfSpeech: 'noun' | 'verb' | 'adjective' | 'adverb';
+  ipa: string;
+  definitions: string[];
+  examples: Vocal900Example[];
+  lessonId: number;
+}
+
+export interface Vocal900Lesson {
+  id: number;
+  title: string;
+  description?: string;
+  words: Vocal900Word[];
+}
+
+
