@@ -1,8 +1,8 @@
-import { motion } from 'framer-motion';
 import { Sparkles, Star, Volume2, ArrowRight } from 'lucide-react';
 import type { VocabularyWord, UserWordProgress } from '../types';
-import { formatPOS, getAimLabel } from '../utils/helpers';
+import { getAimLabel } from '../utils/helpers';
 import type { AccentTheme } from '../utils/helpers';
+import { FlashcardCard } from './FlashcardCard';
 
 interface StudyViewProps {
   words: VocabularyWord[];
@@ -146,142 +146,82 @@ export function StudyView({
           </div>
 
           {/* 3D Flipping Flashcard */}
-          <div
-            data-testid="flashcard"
-            onClick={() => setIsFlipped(!isFlipped)}
-            className="w-full h-80 cursor-pointer relative"
-            style={{ perspective: '1000px' }}
-          >
-            <motion.div
-              className="w-full h-full relative"
-              style={{ transformStyle: 'preserve-3d' }}
-              animate={{ rotateY: isFlipped ? 180 : 0 }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
-            >
-               {/* Front Face */}
-               <div
-                 data-testid="flashcard-front"
-                 className="absolute inset-0 bg-slate-800 border border-slate-700 p-8 rounded-3xl flex flex-col justify-between shadow-2xl backface-hidden"
-                 style={{ backfaceVisibility: 'hidden' }}
-               >
-                 <div className="flex justify-between items-start w-full">
-                   <span className={`px-3 py-1 ${theme.lightBg} ${theme.text} rounded-full text-xs font-semibold uppercase tracking-wider`}>
-                     {studyDeck[safeStudyIndex] && getAimLabel(studyDeck[safeStudyIndex].difficulty)}
-                   </span>
-                   <div className="flex items-center gap-2">
-                     <span className="text-slate-500 text-xs font-semibold">
-                       Card {safeStudyIndex + 1} of {studyDeck.length}
-                     </span>
-                     <button
-                       data-testid="star-btn"
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         if (studyDeck[safeStudyIndex]) {
-                           toggleWordStarred(studyDeck[safeStudyIndex].id);
-                         }
-                       }}
-                       className="p-1 text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
-                     >
-                       <Star className={`w-5 h-5 ${studyDeck[safeStudyIndex] && progress[studyDeck[safeStudyIndex].id]?.isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
-                     </button>
-                   </div>
-                 </div>
+          <FlashcardCard
+            word={studyDeck[safeStudyIndex]?.word || ''}
+            partOfSpeech={studyDeck[safeStudyIndex]?.partOfSpeech || ''}
+            ipa={studyDeck[safeStudyIndex]?.ipa || ''}
+            badgeLabel={studyDeck[safeStudyIndex] && getAimLabel(studyDeck[safeStudyIndex].difficulty)}
+            cardIndexText={`Card ${safeStudyIndex + 1} of ${studyDeck.length}`}
+            isStarred={studyDeck[safeStudyIndex] && !!progress[studyDeck[safeStudyIndex].id]?.isStarred}
+            onToggleStarred={() => {
+              if (studyDeck[safeStudyIndex]) {
+                toggleWordStarred(studyDeck[safeStudyIndex].id);
+              }
+            }}
+            onSpeak={handleSpeak}
+            isFlipped={isFlipped}
+            setIsFlipped={setIsFlipped}
+            theme={theme}
+            backContent={
+              <>
+                <div className="flex justify-between items-center w-full border-b border-slate-700/50 pb-2.5">
+                  <span className="text-xs text-slate-400 uppercase tracking-widest font-bold">Định nghĩa & Ví dụ</span>
+                  <button
+                    data-testid="star-back-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (studyDeck[safeStudyIndex]) {
+                        toggleWordStarred(studyDeck[safeStudyIndex].id);
+                      }
+                    }}
+                    className="text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
+                  >
+                    <Star className={`w-4 h-4 ${studyDeck[safeStudyIndex] && progress[studyDeck[safeStudyIndex].id]?.isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
+                  </button>
+                </div>
 
-                 <div className="text-center space-y-3">
-                   <h3 className="text-5xl font-black text-white tracking-tight break-all">
-                     {studyDeck[safeStudyIndex]?.word}
-                   </h3>
-                   <div className="flex justify-center items-center gap-2">
-                     <span className="text-slate-400 font-medium italic text-sm">
-                       ({studyDeck[safeStudyIndex] && formatPOS(studyDeck[safeStudyIndex].partOfSpeech)})
-                     </span>
-                     <span className="text-indigo-400 font-mono text-sm">
-                       /{studyDeck[safeStudyIndex]?.ipa}/
-                     </span>
-                   </div>
-                 </div>
+                <div className="space-y-4 text-center my-auto">
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Ý nghĩa tiếng Việt</p>
+                    <p className="text-lg font-bold text-slate-100 break-words leading-snug">
+                      {studyDeck[safeStudyIndex]?.definition}
+                    </p>
+                  </div>
 
-                 <div className="flex justify-between items-center w-full">
-                   <button
-                     data-testid="speaker-btn"
-                     onClick={(e) => {
-                       e.stopPropagation();
-                       if (studyDeck[safeStudyIndex]) {
-                         handleSpeak(studyDeck[safeStudyIndex].word);
-                       }
-                     }}
-                     className={`p-2 bg-slate-900 border border-slate-700 text-slate-350 rounded-xl hover:text-slate-100 cursor-pointer transition-colors flex items-center justify-center`}
-                   >
-                     <Volume2 className="w-5 h-5" />
-                   </button>
-                   <span className="text-xs text-slate-500 font-medium">Click to see definition</span>
-                 </div>
-               </div>
+                  {studyDeck[safeStudyIndex]?.example && (
+                    <div className="bg-slate-900/35 border border-slate-700/50 p-3 rounded-2xl text-left max-w-sm mx-auto space-y-1">
+                      <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Ví dụ thực tế</p>
+                      <p className="text-xs text-slate-200 font-semibold italic leading-relaxed break-words">
+                        "{studyDeck[safeStudyIndex]?.example}"
+                      </p>
+                      {studyDeck[safeStudyIndex]?.exampleTranslation && (
+                        <p className="text-[11px] text-indigo-300/80 leading-normal break-words">
+                          {studyDeck[safeStudyIndex]?.exampleTranslation}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
-               {/* Back Face */}
-               <div
-                 data-testid="flashcard-back"
-                 className="absolute inset-0 bg-slate-800 border border-slate-700 p-6 rounded-3xl flex flex-col justify-between shadow-2xl backface-hidden"
-                 style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-               >
-                 <div className="flex justify-between items-center w-full border-b border-slate-700/50 pb-2.5">
-                   <span className="text-xs text-slate-400 uppercase tracking-widest font-bold">Định nghĩa & Ví dụ</span>
-                   <button
-                     data-testid="star-back-btn"
-                     onClick={(e) => {
-                       e.stopPropagation();
-                       if (studyDeck[safeStudyIndex]) {
-                         toggleWordStarred(studyDeck[safeStudyIndex].id);
-                       }
-                     }}
-                     className="text-slate-400 hover:text-amber-400 cursor-pointer transition-colors"
-                   >
-                     <Star className={`w-4 h-4 ${studyDeck[safeStudyIndex] && progress[studyDeck[safeStudyIndex].id]?.isStarred ? 'fill-amber-400 text-amber-400' : ''}`} />
-                   </button>
-                 </div>
-
-                 <div className="space-y-4 text-center my-auto">
-                   <div className="space-y-1">
-                     <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Ý nghĩa tiếng Việt</p>
-                     <p className="text-lg font-bold text-slate-100 break-words leading-snug">
-                       {studyDeck[safeStudyIndex]?.definition}
-                     </p>
-                   </div>
-
-                   {studyDeck[safeStudyIndex]?.example && (
-                     <div className="bg-slate-900/35 border border-slate-700/50 p-3 rounded-2xl text-left max-w-sm mx-auto space-y-1">
-                       <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Ví dụ thực tế</p>
-                       <p className="text-xs text-slate-200 font-semibold italic leading-relaxed break-words">
-                         "{studyDeck[safeStudyIndex]?.example}"
-                       </p>
-                       {studyDeck[safeStudyIndex]?.exampleTranslation && (
-                         <p className="text-[11px] text-indigo-300/80 leading-normal break-words">
-                           {studyDeck[safeStudyIndex]?.exampleTranslation}
-                         </p>
-                       )}
-                     </div>
-                   )}
-
-                   {/* Synonyms Display */}
-                   {studyDeck[safeStudyIndex]?.synonyms && studyDeck[safeStudyIndex]!.synonyms!.length > 0 && (
-                     <div className="space-y-1 text-left max-w-sm mx-auto">
-                       <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Từ đồng nghĩa</p>
-                       <div className="flex flex-wrap gap-1.5 mt-0.5">
-                         {studyDeck[safeStudyIndex]!.synonyms!.map((syn, sIdx) => (
-                           <span key={sIdx} className="px-1.5 py-0.5 bg-slate-900 border border-slate-700 text-slate-300 text-[10px] font-medium rounded-md">
-                             {syn}
-                           </span>
-                         ))}
-                       </div>
-                     </div>
-                   )}
-                 </div>
-                 <div className="text-center text-xs text-slate-500 font-medium">
-                   Click card to flip to front
-                 </div>
-               </div>
-            </motion.div>
-          </div>
+                  {/* Synonyms Display */}
+                  {studyDeck[safeStudyIndex]?.synonyms && studyDeck[safeStudyIndex]!.synonyms!.length > 0 && (
+                    <div className="space-y-1 text-left max-w-sm mx-auto">
+                      <p className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Từ đồng nghĩa</p>
+                      <div className="flex flex-wrap gap-1.5 mt-0.5">
+                        {studyDeck[safeStudyIndex]!.synonyms!.map((syn, sIdx) => (
+                          <span key={sIdx} className="px-1.5 py-0.5 bg-slate-900 border border-slate-700 text-slate-300 text-[10px] font-medium rounded-md">
+                            {syn}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="text-center text-xs text-slate-500 font-medium">
+                  Click card to flip to front
+                </div>
+              </>
+            }
+          />
 
           {/* Operations & Study Actions */}
           <div className="w-full grid grid-cols-3 gap-3">

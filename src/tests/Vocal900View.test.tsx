@@ -56,4 +56,22 @@ describe('Vocal 900 Tab & Feature Tests', () => {
     expect(screen.getByText('abide by')).toBeInTheDocument();
     expect(screen.getByText('specify')).toBeInTheDocument();
   });
+
+  test('contains Lesson 2 with 12 marketing vocabulary words', async () => {
+    const user = userEvent.setup();
+    const lesson2 = vocal900Lessons.find(l => l.id === 2);
+    expect(lesson2).toBeDefined();
+    expect(lesson2?.words).toHaveLength(12);
+
+    render(<App />);
+    const vocalTabBtn = screen.getByTestId('tab-vocal900');
+    await user.click(vocalTabBtn);
+
+    // Click on Lesson 2 in sidebar
+    const lesson2Btn = screen.getByText('Lesson 2: Marketing & Sales');
+    expect(lesson2Btn).toBeInTheDocument();
+    await user.click(lesson2Btn);
+
+    expect(screen.getAllByText('attract')[0]).toBeInTheDocument();
+  });
 });

@@ -275,5 +275,274 @@ export const vocal900Lessons: Vocal900Lesson[] = [
         lessonId: 1
       }
     ]
+  },
+  {
+    id: 2,
+    title: 'Lesson 2: Marketing & Sales',
+    description: '12 từ vựng về tiếp thị, quảng bá và nghiên cứu thị trường',
+    words: [
+      {
+        id: 'v900_l2_1',
+        word: 'attract',
+        partOfSpeech: 'verb',
+        ipa: '/əˈtrækt/',
+        definitions: [
+          'Thu hút',
+          'Hấp dẫn',
+          'Lôi cuốn'
+        ],
+        examples: [
+          {
+            example: 'The display attracted a number of people at the convention.',
+            translation: 'Gian trưng bày thu hút nhiều người tại hội nghị.'
+          },
+          {
+            example: 'The new advertising attracts the wrong kind of customer into the store.',
+            translation: 'Quảng cáo mới thu hút nhầm đối tượng khách hàng vào cửa hàng.'
+          }
+        ],
+        lessonId: 2
+      },
+      {
+        id: 'v900_l2_2',
+        word: 'compare',
+        partOfSpeech: 'verb',
+        ipa: '/kəmˈpeər/',
+        definitions: [
+          'So sánh',
+          'Đối chiếu'
+        ],
+        examples: [
+          {
+            example: 'Once the customer compared the two products, her choice was easy.',
+            translation: 'Sau khi so sánh hai sản phẩm, khách hàng dễ dàng đưa ra lựa chọn.'
+          },
+          {
+            example: 'The price for this brand is high compared to the other brands on the market.',
+            translation: 'Giá của thương hiệu này cao so với các thương hiệu khác trên thị trường.'
+          }
+        ],
+        lessonId: 2
+      },
+      {
+        id: 'v900_l2_3',
+        word: 'compete',
+        partOfSpeech: 'verb',
+        ipa: '/kəmˈpiːt/',
+        definitions: [
+          'Cạnh tranh',
+          'Thi đấu',
+          'Tranh giành'
+        ],
+        examples: [
+          {
+            example: "With only one store in the area, it is difficult for Hector's business to compete with large chains.",
+            translation: 'Với chỉ một cửa hàng trong khu vực, doanh nghiệp của Hector rất khó cạnh tranh với các chuỗi cửa hàng lớn.'
+          },
+          {
+            example: 'We competed against three other agencies to get this contract.',
+            translation: 'Chúng tôi đã cạnh tranh với ba công ty khác để giành hợp đồng này.'
+          }
+        ],
+        lessonId: 2
+      },
+      {
+        id: 'v900_l2_4',
+        word: 'consume',
+        partOfSpeech: 'verb',
+        ipa: '/kənˈsjuːm/',
+        definitions: [
+          'Tiêu thụ',
+          'Sử dụng',
+          'Chiếm (thời gian, năng lượng)',
+          'Làm tiêu tốn'
+        ],
+        examples: [
+          {
+            example: "The business plans consumed all of Fritz's attention this fall.",
+            translation: 'Các kế hoạch kinh doanh đã chiếm hết sự chú ý của Fritz vào mùa thu này.'
+          },
+          {
+            example: 'Chen consumes more than his share of computer time.',
+            translation: 'Chen dành/tiêu tốn nhiều thời gian sử dụng máy tính hơn phần của mình.'
+          }
+        ],
+        lessonId: 2
+      },
+      {
+        id: 'v900_l2_5',
+        word: 'convince',
+        partOfSpeech: 'verb',
+        ipa: '/kənˈvɪns/',
+        definitions: [
+          'Thuyết phục',
+          'Làm cho tin tưởng'
+        ],
+        examples: [
+          {
+            example: 'The salesman convinced his customer to buy his entire inventory of pens.',
+            translation: 'Người bán hàng đã thuyết phục khách hàng mua toàn bộ số bút của mình.'
+          },
+          {
+            example: 'Before a business can convince customers that it provides a quality product, it must convince its marketing staff.',
+            translation: 'Trước khi doanh nghiệp thuyết phục khách hàng rằng sản phẩm có chất lượng, họ phải thuyết phục đội ngũ marketing của mình trước.'
+          }
+        ],
+        lessonId: 2
+      },
+      {
+        id: 'v900_l2_6',
+        word: 'current',
+        partOfSpeech: 'adjective',
+        ipa: '/ˈkʌr.ənt/',
+        definitions: [
+          'Hiện tại',
+          'Hiện hành',
+          'Mới nhất',
+          'keep current: Cập nhật, Theo kịp'
+        ],
+        examples: [
+          {
+            example: 'It is important to read current magazines to see how competitors market their products.',
+            translation: 'Điều quan trọng là đọc các tạp chí mới nhất để xem đối thủ tiếp thị sản phẩm như thế nào.'
+          },
+          {
+            example: 'Good marketing requires keeping current with modern technology and best practices.',
+            translation: 'Marketing tốt đòi hỏi phải cập nhật công nghệ hiện đại và các phương pháp tốt nhất.'
+          }
+        ],
+        lessonId: 2
+      },
+      {
+        id: 'v900_l2_7',
+        word: 'fad',
+        partOfSpeech: 'noun',
+        ipa: '/fæd/',
+        definitions: [
+          'Mốt nhất thời',
+          'Trào lưu',
+          'Xu hướng ngắn hạn'
+        ],
+        examples: [
+          {
+            example: 'The mini dress was a fad once thought to be finished, but now it is making a comeback.',
+            translation: 'Váy mini từng là một mốt nhất thời, nhưng giờ đang quay trở lại.'
+          },
+          {
+            example: 'Classic tastes may seem boring but they have proven to resist fads.',
+            translation: 'Gu cổ điển có thể nhàm chán nhưng đã chứng minh rằng chúng không bị ảnh hưởng bởi các trào lưu nhất thời.'
+          }
+        ],
+        lessonId: 2
+      },
+      {
+        id: 'v900_l2_8',
+        word: 'inspire',
+        partOfSpeech: 'verb',
+        ipa: '/ɪnˈspaɪər/',
+        definitions: [
+          'Truyền cảm hứng',
+          'Khích lệ',
+          'Gợi cảm hứng'
+        ],
+        examples: [
+          {
+            example: 'The heart-wrenching video about world hunger inspired Kristen to get involved in food security issues.',
+            translation: 'Đoạn video cảm động về nạn đói trên thế giới đã truyền cảm hứng cho Kristen tham gia các vấn đề an ninh lương thực.'
+          },
+          {
+            example: 'His painting style was inspired by the works of the Old Masters.',
+            translation: 'Phong cách hội họa của ông được lấy cảm hứng từ các danh họa cổ điển.'
+          }
+        ],
+        lessonId: 2
+      },
+      {
+        id: 'v900_l2_9',
+        word: 'market',
+        partOfSpeech: 'verb',
+        ipa: '/ˈmɑː.kɪt/',
+        definitions: [
+          'v. Tiếp thị, Quảng bá, Bán ra thị trường',
+          'n. Thị trường, Nhu cầu thị trường'
+        ],
+        examples: [
+          {
+            example: 'When Omar first began making his chutneys, he marketed them door-to-door to gourmet shops.',
+            translation: 'Khi Omar mới bắt đầu làm nước sốt chutney, anh ấy tiếp thị/bán chúng đến từng cửa hàng thực phẩm cao cấp.'
+          },
+          {
+            example: 'The market for brightly colored clothing was brisk last year, but moving sluggishly this year.',
+            translation: 'Thị trường quần áo màu sắc rực rỡ rất sôi động năm ngoái nhưng đang chậm lại trong năm nay.'
+          }
+        ],
+        lessonId: 2
+      },
+      {
+        id: 'v900_l2_10',
+        word: 'persuade',
+        partOfSpeech: 'verb',
+        ipa: '/pəˈsweɪd/',
+        definitions: [
+          'Thuyết phục',
+          'Thuyết phục ai làm gì'
+        ],
+        examples: [
+          {
+            example: 'Juan, with his charming personality, eventually persuaded the pharmacist to stock samples of the new medicine.',
+            translation: 'Với tính cách cuốn hút, Juan cuối cùng đã thuyết phục dược sĩ nhập mẫu thuốc mới.'
+          },
+          {
+            example: 'No amount of marketing could persuade Doris to give up her old, but reliable, laundry soap.',
+            translation: 'Không chiến dịch marketing nào có thể thuyết phục Doris từ bỏ loại bột giặt cũ nhưng đáng tin cậy của bà.'
+          }
+        ],
+        lessonId: 2
+      },
+      {
+        id: 'v900_l2_11',
+        word: 'productive',
+        partOfSpeech: 'adjective',
+        ipa: '/prəˈdʌk.tɪv/',
+        definitions: [
+          'Hiệu quả',
+          'Năng suất',
+          'Có ích'
+        ],
+        examples: [
+          {
+            example: 'The unproductive sales meeting brought many staff complaints.',
+            translation: 'Cuộc họp bán hàng không hiệu quả khiến nhiều nhân viên phàn nàn.'
+          },
+          {
+            example: 'Alonzo is excited about his productive sales territory.',
+            translation: 'Alonzo rất hào hứng với khu vực bán hàng có năng suất cao của mình.'
+          }
+        ],
+        lessonId: 2
+      },
+      {
+        id: 'v900_l2_12',
+        word: 'satisfy',
+        partOfSpeech: 'verb',
+        ipa: '/ˈsæt.ɪs.faɪ/',
+        definitions: [
+          'Làm hài lòng',
+          'Thỏa mãn',
+          'Đáp ứng'
+        ],
+        examples: [
+          {
+            example: 'Henri was perfectly satisfied with his new fishing rod and recommended the brand to many friends.',
+            translation: 'Henri hoàn toàn hài lòng với chiếc cần câu mới và giới thiệu thương hiệu đó cho nhiều bạn bè.'
+          },
+          {
+            example: 'If you know what kind of gift will satisfy your friend, think about giving a gift certificate instead.',
+            translation: 'Nếu bạn biết món quà nào sẽ làm hài lòng bạn mình, hãy cân nhắc tặng phiếu quà tặng.'
+          }
+        ],
+        lessonId: 2
+      }
+    ]
   }
 ];

@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
 import {
   BookOpen,
   Volume2,
@@ -18,6 +17,7 @@ import type { Vocal900Lesson, Vocal900Word } from '../types';
 import { vocal900Lessons } from '../data/vocal900';
 import { formatPOS } from '../utils/helpers';
 import type { AccentTheme } from '../utils/helpers';
+import { FlashcardCard } from './FlashcardCard';
 
 interface Vocal900ViewProps {
   handleSpeak: (text: string) => void;
@@ -345,80 +345,24 @@ export function Vocal900View({
                     </div>
                   </div>
 
-                  {/* Flip Card Container */}
-                  <div
-                    onClick={() => setIsFlipped(!isFlipped)}
-                    className="relative w-full min-h-[360px] cursor-pointer perspective-1000 group"
-                  >
-                    <motion.div
-                      animate={{ rotateY: isFlipped ? 180 : 0 }}
-                      transition={{ duration: 0.5, ease: 'easeInOut' }}
-                      className="w-full h-full preserve-3d"
-                    >
-                      {/* FRONT OF CARD */}
-                      <div
-                        className={`absolute inset-0 bg-slate-800 border-2 rounded-3xl p-8 flex flex-col justify-between shadow-2xl backface-hidden transition-colors ${
-                          vocalProgress[currentWord.id]?.mastered
-                            ? 'border-emerald-500/40 bg-slate-800/90'
-                            : `border-slate-700 hover:${theme.border}`
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                            {formatPOS(currentWord.partOfSpeech)}
-                          </span>
-
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={e => {
-                                e.stopPropagation();
-                                toggleStarred(currentWord.id);
-                              }}
-                              className={`p-2 rounded-xl border transition-all ${
-                                vocalProgress[currentWord.id]?.starred
-                                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
-                                  : 'bg-slate-700/50 border-slate-600/50 text-slate-400 hover:text-amber-400'
-                              }`}
-                              title="Gắn sao từ này"
-                            >
-                              <Star className={`w-4 h-4 ${vocalProgress[currentWord.id]?.starred ? 'fill-amber-400' : ''}`} />
-                            </button>
-                            <button
-                              onClick={e => {
-                                e.stopPropagation();
-                                handleSpeak(currentWord.word);
-                              }}
-                              className="p-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-all"
-                              title="Phát âm từ vựng"
-                            >
-                              <Volume2 className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Word & IPA */}
-                        <div className="text-center py-6 space-y-3">
-                          <h3 className="text-4xl font-extrabold text-white tracking-tight">
-                            {currentWord.word}
-                          </h3>
-                          <div className="flex items-center justify-center gap-2">
-                            <span className="text-slate-400 font-mono text-base bg-slate-900/60 px-3 py-1 rounded-lg border border-slate-700/50">
-                              {currentWord.ipa}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Prompt */}
-                        <div className="text-center text-xs text-slate-400 flex items-center justify-center gap-1.5 pt-4 border-t border-slate-700/50">
-                          <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
-                          <span>Nhấn vào thẻ để xem nghĩa tiếng Việt & ví dụ</span>
-                        </div>
-                      </div>
-
-                      {/* BACK OF CARD */}
-                      <div
-                        className="absolute inset-0 bg-slate-800 border-2 border-blue-500/40 rounded-3xl p-8 flex flex-col justify-between shadow-2xl backface-hidden rotateY-180 overflow-y-auto custom-scrollbar"
-                      >
+                  {/* Shared 3D Flipping Flashcard */}
+                  <FlashcardCard
+                    word={currentWord.word}
+                    partOfSpeech={currentWord.partOfSpeech}
+                    ipa={currentWord.ipa}
+                    badgeLabel={activeLesson.title.split(':')[0]}
+                    cardIndexText={`Thẻ ${currentCardIndex + 1} / ${activeLesson.words.length}`}
+                    isStarred={vocalProgress[currentWord.id]?.starred}
+                    isMastered={vocalProgress[currentWord.id]?.mastered}
+                    onToggleStarred={() => toggleStarred(currentWord.id)}
+                    onSpeak={handleSpeak}
+                    isFlipped={isFlipped}
+                    setIsFlipped={setIsFlipped}
+                    theme={theme}
+                    heightClass="h-[420px] sm:h-[450px]"
+                    testIdCard="vocal-flashcard"
+                    backContent={
+                      <div className="h-full flex flex-col justify-between overflow-y-auto custom-scrollbar">
                         <div className="space-y-4">
                           <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
                             <div className="flex items-center gap-2">
@@ -427,15 +371,26 @@ export function Vocal900View({
                                 {formatPOS(currentWord.partOfSpeech)}
                               </span>
                             </div>
-                            <button
-                              onClick={e => {
-                                e.stopPropagation();
-                                handleSpeak(currentWord.word);
-                              }}
-                              className="p-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-all"
-                            >
-                              <Volume2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  toggleStarred(currentWord.id);
+                                }}
+                                className="text-slate-400 hover:text-amber-400 p-1"
+                              >
+                                <Star className={`w-4 h-4 ${vocalProgress[currentWord.id]?.starred ? 'fill-amber-400 text-amber-400' : ''}`} />
+                              </button>
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  handleSpeak(currentWord.word);
+                                }}
+                                className="p-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-all"
+                              >
+                                <Volume2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
 
                           {/* Meanings */}
@@ -484,8 +439,8 @@ export function Vocal900View({
                           Bấm lại để lật về mặt trước
                         </div>
                       </div>
-                    </motion.div>
-                  </div>
+                    }
+                  />
 
                   {/* Controls below card */}
                   <div className="flex items-center justify-between gap-4 mt-6">
